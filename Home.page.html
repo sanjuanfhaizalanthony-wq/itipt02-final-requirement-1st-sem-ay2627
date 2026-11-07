@@ -1,0 +1,451 @@
+@if (showStartupScreen) {
+  <div class="startup-screen" role="status" aria-label="Loading SoundWave">
+    <video
+      class="startup-video"
+      autoplay
+      muted
+      playsinline
+      preload="auto"
+      aria-label="Startup video"
+      (playing)="onStartupVideoPlaying()"
+      (ended)="finishStartupScreen()"
+      (error)="finishStartupScreen()"
+    >
+      <source src="/assets/loading-screen.mp4" type="video/mp4" />
+    </video>
+  </div>
+}
+
+<ion-header>
+  <ion-toolbar>
+    <div class="topbar">
+      <a class="brand" (click)="setPage('home')" aria-label="SoundWave home">
+        <span class="brand-icon"><ion-icon name="musical-notes-outline"></ion-icon></span>
+        <span class="brand-name">sound<span>wave</span></span>
+      </a>
+      <div class="account-actions">
+        @if (isSignedIn) {
+          <span class="account-label">{{ signedInUsername }}</span>
+          <ion-button fill="clear" aria-label="Sign out of demo account" (click)="signOutDemo()">
+            <ion-icon slot="icon-only" name="log-out-outline"></ion-icon>
+          </ion-button>
+        } @else {
+          <span class="guest-label">Guest · offline free</span>
+          <ion-button class="signin-top-button" (click)="setPage('online')">
+            <ion-icon slot="start" name="log-in-outline"></ion-icon>
+            Sign in for online
+          </ion-button>
+        }
+        <ion-button class="pro-top-button" (click)="showProPanel = true">
+          <ion-icon slot="start" name="sparkles-outline"></ion-icon>
+          {{ proEnabled ? 'Pro active' : 'Pro · ₱99 demo' }}
+        </ion-button>
+      </div>
+    </div>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <main class="studio">
+    <section class="player-panel">
+      <div class="panel-topline">
+        <span class="eyebrow">NOW PLAYING</span>
+        <button class="icon-action" aria-label="Share song" (click)="shareCurrentSong()">
+          <ion-icon name="share-social-outline"></ion-icon>
+        </button>
+      </div>
+
+      @if (currentSong && isYouTubeSong(currentSong)) {
+        <div class="youtube-player">
+          <iframe
+            [src]="youtubePlayerUrl"
+            [title]="'YouTube player: ' + currentSong.title"
+            allow="autoplay; encrypted-media; picture-in-picture"
+            referrerpolicy="origin"
+            allowfullscreen
+          ></iframe>
+        </div>
+        <div class="track-title">
+          <h1>{{ currentSong.title }}</h1>
+          <p>{{ currentSong.artist }}</p>
+        </div>
+        <div class="track-actions youtube-track-actions">
+          <ion-button
+            fill="clear"
+            [disabled]="!isSongInLibrary(currentSong)"
+            [attr.aria-label]="isFavorite(currentSong) ? 'Remove favorite' : 'Add current song to favorites'"
+            (click)="toggleFavorite(currentSong)"
+          >
+            <ion-icon
+              slot="start"
+              [name]="isFavorite(currentSong) ? 'heart' : 'heart-outline'"
+            ></ion-icon>
+            Liked
+          </ion-button>
+          <ion-button
+            class="youtube-library-button"
+            fill="clear"
+            [disabled]="isSongInLibrary(currentSong)"
+            (click)="addCurrentSongToLibrary()"
+          >
+            <ion-icon
+              slot="start"
+              [name]="isSongInLibrary(currentSong) ? 'checkmark-outline' : 'add-outline'"
+            ></ion-icon>
+            {{ isSongInLibrary(currentSong) ? 'In library' : 'Add to library' }}
+          </ion-button>
+        </div>
+      } @else {
+        <div class="record-frame" [style.--progress]="progressPercent + '%'">
+          <div class="record-art">
+            <div class="art-stars"></div>
+            <div class="art-silhouette"></div>
+            <ion-icon name="musical-notes-outline"></ion-icon>
+          </div>
+        </div>
+
+        <div class="record-time">
+          <span>{{ formatTime(currentTime) }}</span>
+          <span>{{ formatTime(duration) }}</span>
+        </div>
+        <input
+          class="record-slider"
+          type="range"
+          min="0"
+          [max]="duration || 0"
+          [value]="currentTime"
+          (input)="seek($event)"
+          aria-label="Playback progress"
+        />
+
+        <div class="track-title">
+          <h1>{{ currentSong?.title || 'Your next favorite' }}</h1>
+          <p>{{ currentSong?.artist || 'Choose a track to start listening' }}</p>
+          @if (currentSong?.license) {
+            <a class="license-link" [href]="currentSong.sourceUrl" target="_blank" rel="noopener noreferrer">
+              {{ currentSong.license }} · {{ isExternalCatalogSong(currentSong) ? 'open full song' : 'view attribution' }}
+            </a>
+          }
+        </div>
+
+        <div class="waveform" aria-hidden="true">
+          <span style="--bar: 21%"></span><span style="--bar: 38%"></span>
+          <span style="--bar: 28%"></span><span style="--bar: 54%"></span>
+          <span style="--bar: 35%"></span><span style="--bar: 70%"></span>
+          <span style="--bar: 45%"></span><span style="--bar: 84%"></span>
+          <span style="--bar: 52%"></span><span style="--bar: 64%"></span>
+          <span style="--bar: 36%"></span><span style="--bar: 76%"></span>
+          <span style="--bar: 48%"></span><span style="--bar: 90%"></span>
+          <span style="--bar: 56%"></span><span style="--bar: 68%"></span>
+          <span style="--bar: 34%"></span><span style="--bar: 79%"></span>
+          <span style="--bar: 47%"></span><span style="--bar: 62%"></span>
+          <span style="--bar: 32%"></span><span style="--bar: 51%"></span>
+          <span style="--bar: 29%"></span><span style="--bar: 42%"></span>
+        </div>
+
+        <div class="track-actions">
+          <ion-button fill="clear" aria-label="Add current song to favorites" (click)="currentSong && toggleFavorite(currentSong)">
+            <ion-icon slot="icon-only" [name]="currentSong && isFavorite(currentSong) ? 'heart' : 'heart-outline'"></ion-icon>
+          </ion-button>
+          <ion-button fill="clear" [class.control-active]="shuffleEnabled" aria-label="Shuffle (Pro demo)" (click)="toggleShuffle()">
+            <ion-icon slot="icon-only" name="shuffle-outline"></ion-icon>
+          </ion-button>
+          <ion-button fill="clear" aria-label="Previous song" (click)="playNext(-1)">
+            <ion-icon slot="icon-only" name="play-skip-back"></ion-icon>
+          </ion-button>
+          <ion-button class="main-play-button" aria-label="Play or pause" (click)="currentSong && togglePlayback()">
+            <ion-icon slot="icon-only" [name]="isPlaying ? 'pause' : 'play'"></ion-icon>
+          </ion-button>
+          <ion-button fill="clear" aria-label="Next song" (click)="playNext(1)">
+            <ion-icon slot="icon-only" name="play-skip-forward"></ion-icon>
+          </ion-button>
+          <ion-button fill="clear" [class.control-active]="repeatEnabled" aria-label="Repeat (Pro demo)" (click)="toggleRepeat()">
+            <ion-icon slot="icon-only" name="repeat-outline"></ion-icon>
+          </ion-button>
+        </div>
+
+        <p class="background-note">Playback may pause when this browser is closed or suspended.</p>
+      }
+    </section>
+
+    <section class="library-panel">
+      <div class="library-heading">
+        <div>
+          <p class="eyebrow">SOUNDWAVE MUSIC</p>
+          <h2>
+            @if (activePage === 'online') { Discover audio }
+            @else if (activePage === 'offline') { Offline library }
+            @else if (activePage === 'favorites') { Your favorites }
+            @else { Good evening }
+          </h2>
+          <p class="library-subtitle">
+            @if (activePage === 'online') { Search YouTube and play a video here }
+            @else { Your personal listening space }
+          </p>
+        </div>
+        @if (activePage === 'home' || activePage === 'offline') {
+          <label class="import-button" aria-label="Add audio files">
+            <ion-icon name="add-outline"></ion-icon>
+            <input type="file" accept="audio/*" multiple (change)="importAudio($event)" />
+          </label>
+        }
+      </div>
+
+      <nav class="page-tabs" aria-label="Music pages">
+        <button [class.selected]="activePage === 'home'" (click)="setPage('home')">Library</button>
+        <button [class.selected]="activePage === 'offline'" (click)="setPage('offline')">Offline</button>
+        <button [class.selected]="activePage === 'online'" (click)="setPage('online')">Explore</button>
+        <button [class.selected]="activePage === 'favorites'" (click)="setPage('favorites')">Liked</button>
+      </nav>
+
+      @if (message) {
+        <p class="notice" role="status">{{ message }}</p>
+      }
+
+      @if (activePage === 'online' && !isSignedIn) {
+        <section class="signin-card">
+          <div class="signin-icon"><ion-icon name="radio-outline"></ion-icon></div>
+          <p class="eyebrow">ONLINE LISTENING</p>
+          <h3>{{ authMode === 'login' ? 'Welcome ' : 'Create your account' }}</h3>
+          <p>Offline music stays free for guests. Sign in to your XAMPP MySQL account and activate Pro demo to search and play YouTube videos here.</p>
+          <div class="auth-switch">
+            <button [class.selected]="authMode === 'login'" (click)="switchAuthMode('login')">Sign in</button>
+            <button [class.selected]="authMode === 'register'" (click)="switchAuthMode('register')">Create account</button>
+          </div>
+          <ion-input
+            label="Username"
+            labelPlacement="stacked"
+            type="text"
+            autocomplete="username"
+            placeholder="3–30 letters, numbers, or _"
+            [(ngModel)]="demoUsername"
+          ></ion-input>
+          <ion-input
+            label="Password"
+            labelPlacement="stacked"
+            type="password"
+            [attr.autocomplete]="authMode === 'login' ? 'current-password' : 'new-password'"
+            placeholder="At least 6 characters"
+            [(ngModel)]="demoPassword"
+            (keyup.enter)="authMode === 'login' ? signInDemo() : registerDemo()"
+          ></ion-input>
+          @if (authMode === 'login') {
+            <ion-button expand="block" class="signin-button" (click)="signInDemo()">Sign in</ion-button>
+          } @else {
+            <ion-button expand="block" class="signin-button" (click)="registerDemo()">Create account</ion-button>
+          }
+          <small>Creating an account requires XAMPP Apache and MySQL to be running.</small>
+        </section>
+      } @else if (activePage === 'online' && !proEnabled) {
+        <section class="signin-card subscribe-card">
+          <div class="signin-icon"><ion-icon name="sparkles-outline"></ion-icon></div>
+          <p class="eyebrow">SOUNDWAVE PRO DEMO</p>
+          <h3>Unlock online listening</h3>
+          <p>Pro demo enables online song search and playback for your MySQL account.</p>
+          <div class="subscription-price">₱99 <span>/ month · simulated</span></div>
+          <ion-button expand="block" class="signin-button" (click)="showProPanel = true">
+            Review demo subscription
+          </ion-button>
+          <small>No real charge is made. This is not a payment or renewal service.</small>
+        </section>
+      } @else if (activePage === 'online' && networkAvailable) {
+        <section class="catalog-search">
+          <label for="youtube-catalog-search">Search YouTube for a song or artist</label>
+          <div class="catalog-search-row">
+            <ion-input
+              id="youtube-catalog-search"
+              placeholder="Song title or artist name"
+              [(ngModel)]="catalogQuery"
+              (keyup.enter)="searchYouTubeVideos()"
+            ></ion-input>
+            <ion-button aria-label="Search songs" [disabled]="catalogLoading" (click)="searchYouTubeVideos()">
+              @if (catalogLoading) { Searching… } @else { Search }
+            </ion-button>
+          </div>
+          <p>Play a YouTube video here, then choose Add to library to save its title and artist to your account. YouTube restrictions and ads may apply.</p>
+        </section>
+        <section class="catalog-search youtube-link-entry">
+          <label for="youtube-video-link">Or paste a YouTube video link</label>
+          <div class="catalog-search-row">
+            <ion-input
+              id="youtube-video-link"
+              type="url"
+              placeholder="https://www.youtube.com/watch?v=..."
+              [(ngModel)]="youtubeUrl"
+            ></ion-input>
+            <ion-button aria-label="Play YouTube link" (click)="addYouTubeLink()">Play</ion-button>
+          </div>
+          <p>This plays the official YouTube embed here. It does not download the audio or video.</p>
+        </section>
+      }
+
+      @if (activePage === 'online' && catalogResults.length > 0) {
+        <section class="catalog-results" aria-labelledby="catalog-results-heading">
+          <h3 id="catalog-results-heading">YouTube results · choose one to play</h3>
+          <ion-list class="song-list" lines="none">
+            @for (song of catalogResults; track song.sourceKey) {
+              <ion-item class="song-row">
+                <button
+                  class="row-play"
+                  (click)="selectCatalogSong(song)"
+                  [attr.aria-label]="'Play in app ' + song.title"
+                >
+                  <ion-icon name="play"></ion-icon>
+                </button>
+                <ion-label class="song-copy">
+                  <h3>{{ song.title }}</h3>
+                  <p>{{ song.artist }}</p>
+                  @if (song.license && song.sourceUrl) {
+                    <a class="row-license" [href]="song.sourceUrl" target="_blank" rel="noopener noreferrer">
+                      {{ song.license }} · attribution
+                    </a>
+                  }
+                </ion-label>
+              </ion-item>
+            }
+          </ion-list>
+        </section>
+      }
+
+      @if (activePage === 'online' && visibleSongs.length > 0) {
+        <h3 class="library-list-heading">Your online library</h3>
+      }
+
+      @if (visibleSongs.length > 0) {
+        <ion-list class="song-list" lines="none">
+          @for (song of visibleSongs; track song.id; let index = $index) {
+            <ion-item class="song-row" [class.current-row]="currentSong?.id === song.id">
+              <button
+                class="row-play"
+                (click)="isExternalCatalogSong(song) ? openExternalSong(song) : playSong(song)"
+                [attr.aria-label]="isExternalCatalogSong(song) ? 'Open ' + song.title + ' in Apple Music' : (isPlaying && currentSong?.id === song.id ? 'Pause ' : 'Play ') + song.title"
+              >
+                <ion-icon [name]="isExternalCatalogSong(song) ? 'open-outline' : (isPlaying && currentSong?.id === song.id ? 'pause' : 'play')"></ion-icon>
+              </button>
+              <ion-label class="song-copy">
+                @if (editingSongId === song.id) {
+                  <div class="rename-fields">
+                    <ion-input
+                      aria-label="Song title"
+                      placeholder="Song title"
+                      [(ngModel)]="editTitle"
+                    ></ion-input>
+                    <ion-input
+                      aria-label="Artist name"
+                      placeholder="Artist name"
+                      [(ngModel)]="editArtist"
+                    ></ion-input>
+                    <div class="rename-actions">
+                      <ion-button fill="clear" aria-label="Save song name" (click)="saveRename(song)">Save</ion-button>
+                      <ion-button fill="clear" aria-label="Cancel rename" (click)="cancelRename()">Cancel</ion-button>
+                    </div>
+                  </div>
+                } @else {
+                  <h3>{{ song.title }}</h3>
+                  <p>{{ song.artist }}</p>
+                  @if (song.license && song.sourceUrl) {
+                    <a class="row-license" [href]="song.sourceUrl" target="_blank" rel="noopener noreferrer">
+                      {{ song.license }} · {{ isExternalCatalogSong(song) ? 'open Apple Music' : 'view license and attribution' }}
+                    </a>
+                  } @else {
+                    <p class="song-kind">{{ song.songType }} audio</p>
+                  }
+                }
+              </ion-label>
+              <ion-button
+                fill="clear"
+                class="song-action-button"
+                [attr.aria-label]="'Rename ' + song.title"
+                (click)="startRename(song)"
+              >
+                <ion-icon slot="icon-only" name="pencil-outline"></ion-icon>
+              </ion-button>
+              <ion-button
+                fill="clear"
+                class="favorite-button"
+                [attr.aria-label]="isFavorite(song) ? 'Remove favorite' : 'Add favorite'"
+                (click)="toggleFavorite(song)"
+              >
+                <ion-icon slot="icon-only" [name]="isFavorite(song) ? 'heart' : 'heart-outline'"></ion-icon>
+              </ion-button>
+              <ion-button
+                fill="clear"
+                class="song-action-button delete-button"
+                [attr.aria-label]="'Delete ' + song.title"
+                (click)="removeSong(song)"
+              >
+                <ion-icon slot="icon-only" name="trash-outline"></ion-icon>
+              </ion-button>
+            </ion-item>
+          }
+        </ion-list>
+      } @else if (
+        catalogResults.length === 0 &&
+        !(activePage === 'online' && !canUseOnline)
+      ) {
+        <section class="empty-state">
+          <div class="empty-icon"><ion-icon name="musical-notes-outline"></ion-icon></div>
+          <h3>{{ activePage === 'online' ? 'Find a video' : 'Your playlist starts here' }}</h3>
+          <p>
+            @if (activePage === 'online' && !networkAvailable) { You are offline. Connect to search and stream online music, or use Offline for device music. }
+            @else if (activePage === 'online') { Search YouTube for a song or artist. Play a video, then add it to your library when you want to keep it. }
+            @else if (activePage === 'favorites') { Tap a heart on any song to save it here. }
+            @else { Add audio files from your device to play music offline. }
+          </p>
+        </section>
+      }
+
+      @if (activePage === 'online' && canUseOnline) {
+        <details class="direct-link">
+          <summary>Add an authorized direct audio URL</summary>
+            <p>Use only a stream you own or are allowed to play. SoundWave saves the stream link, not the audio file.</p>
+          <div class="online-fields">
+            <ion-input label="Title" labelPlacement="stacked" [(ngModel)]="onlineTitle"></ion-input>
+            <ion-input label="Artist" labelPlacement="stacked" [(ngModel)]="onlineArtist"></ion-input>
+            <ion-input label="Direct audio URL" labelPlacement="stacked" type="url" [(ngModel)]="onlineUrl"></ion-input>
+          </div>
+          <ion-button class="add-link-button" expand="block" (click)="addOnlineSong()">Add URL</ion-button>
+        </details>
+      }
+      <p class="database-note">YouTube videos are saved to your account only when you choose Add to library. Imported audio titles and artist names are saved for your account; audio files stay on this device. Sign out to use your own imported offline songs.</p>
+    </section>
+  </main>
+
+  @if (showProPanel) {
+    <div class="modal-backdrop" role="presentation" (click)="showProPanel = false">
+      <section class="pro-panel" role="dialog" aria-modal="true" aria-labelledby="pro-heading" (click)="$event.stopPropagation()">
+        <button class="close-modal" aria-label="Close Pro preview" (click)="showProPanel = false">
+          <ion-icon name="close-outline"></ion-icon>
+        </button>
+        <div class="pro-icon"><ion-icon name="sparkles-outline"></ion-icon></div>
+        <p class="eyebrow">SOUNDWAVE PRO DEMO</p>
+        @if (!isSignedIn) {
+          <h2 id="pro-heading">Sign in first</h2>
+          <p>Create a MySQL demo account or sign in to start the subscription walkthrough.</p>
+          <ion-button expand="block" class="signin-button" (click)="showProPanel = false; setPage('online')">Go to sign in</ion-button>
+        } @else if (proEnabled) {
+          <h2 id="pro-heading">Pro demo is active</h2>
+          <p>Online search and playback are unlocked for this browser demo account.</p>
+          <ion-button expand="block" class="signin-button" (click)="showProPanel = false; setPage('online')">Explore online music</ion-button>
+        } @else {
+          <h2 id="pro-heading">Unlock online music</h2>
+          <p>Demo plan: <strong>₱99 for one month</strong>. Choose a pretend payment method, then confirm the simulated checkout.</p>
+          <div class="payment-methods" role="group" aria-label="Demo payment method">
+            <button [class.selected]="demoPaymentMethod === 'wallet'" (click)="demoPaymentMethod = 'wallet'">E-wallet demo</button>
+            <button [class.selected]="demoPaymentMethod === 'card'" (click)="demoPaymentMethod = 'card'">Card demo</button>
+          </div>
+          <ion-button expand="block" class="signin-button" (click)="finishDemoCheckout()">Pay ₱99 · simulate only</ion-button>
+          <small>No card or wallet details are requested. No money is charged; the demo subscription is saved in XAMPP MySQL.</small>
+        }
+      </section>
+    </div>
+  }
+
+  <audio
+    #audioPlayer
+    (timeupdate)="onTimeUpdate()"
+    (loadedmetadata)="onTimeUpdate()"
+    (ended)="onAudioEnded()"
+    (error)="onAudioError()"
+  ></audio>
+</ion-content>
