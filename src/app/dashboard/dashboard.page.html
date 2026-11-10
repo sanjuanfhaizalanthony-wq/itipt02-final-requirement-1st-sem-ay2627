@@ -1,0 +1,573 @@
+<ion-content [fullscreen]="true">
+  <main class="dashboard-shell">
+    @if (isLoading()) {
+    <p class="status-message" role="status">Loading your dorm dashboard...</p>
+    } @else if (errorMessage() && !user()) {
+    <p class="status-message error-message" role="alert">{{ errorMessage() }}</p>
+    } @else if (user(); as currentUser) { @if (profile(); as currentProfile) {
+    <header class="topbar">
+      <div class="brand">
+        <span class="brand-icon"><ion-icon name="restaurant-outline"></ion-icon></span>
+        <div>
+          <strong>NutriDorm <small>DORMER EDITION</small></strong>
+          <span>{{ currentUser.dorm_name }} · Budget Meal &amp; Grocery Assistant</span>
+        </div>
+      </div>
+      <div class="topbar-actions">
+        @if (currentProfile.weekly_allowance !== null) {
+        <span class="allowance-pill"
+          ><ion-icon name="wallet-outline"></ion-icon> ₱{{ currentProfile.weekly_allowance }}</span
+        >
+        }
+        <button
+          class="account-trigger"
+          type="button"
+          (click)="toggleAccountPanel()"
+          [attr.aria-expanded]="isAccountPanelOpen()"
+          aria-controls="account-panel"
+          aria-label="Account profile"
+        >
+          <ion-icon name="person-circle-outline"></ion-icon>
+        </button>
+      </div>
+    </header>
+
+    @if (isAccountPanelOpen()) {
+    <section class="account-panel" id="account-panel" aria-label="Account profile">
+      <div class="account-panel-heading">
+        <div class="account-avatar"><ion-icon name="person-circle-outline"></ion-icon></div>
+        <div class="account-identity">
+          <strong>{{ currentUser.full_name }}</strong>
+          <span>{{ currentUser.email }}</span>
+          <small>{{ currentUser.dorm_name }}</small>
+        </div>
+        <button class="account-close" type="button" (click)="toggleAccountPanel()" aria-label="Close account profile">
+          ×
+        </button>
+      </div>
+      <div class="account-actions">
+        <button type="button" (click)="switchAccount()">
+          <ion-icon name="swap-horizontal-outline"></ion-icon> Switch account
+        </button>
+        <button class="account-signout" type="button" (click)="signOut()">
+          <ion-icon name="log-out-outline"></ion-icon> Sign out
+        </button>
+      </div>
+    </section>
+    }
+
+    @if (errorMessage()) {
+    <p class="status-message error-message" role="alert">{{ errorMessage() }}</p>
+    } @if (selectedSection() === 'overview') {
+    <section class="home-section">
+      <article class="budget-card">
+        <div class="budget-heading">
+          <h1>Weekly Budget Tracker</h1>
+          <span>Estimated Left</span>
+        </div>
+        <div class="budget-main">
+          <div>
+            <strong class="allowance">₱{{ currentProfile.weekly_allowance || '0' }}</strong>
+            <button class="text-button" type="button" (click)="toggleBudgetForm()">
+              <ion-icon name="create-outline"></ion-icon> Edit
+            </button>
+          </div>
+          <strong class="money-left" [class.over-budget]="foodBudgetLeft() === 0"
+            >₱{{ foodBudgetLeft() | number: '1.0-0' }}</strong
+          >
+        </div>
+        <div class="planned-line">
+          <span>Planned Meals: ₱{{ plannedMealCost() | number: '1.0-0' }}</span>
+          <span>{{ plannedBudgetPercent() | number: '1.0-0' }}% of budget</span>
+        </div>
+        <div class="progress-track">
+          <span [style.width.%]="plannedBudgetPercent()"></span>
+        </div>
+        <div class="budget-footer">
+          <span>Logged Spending: <strong>₱{{ spentThisWeek() | number: '1.0-0' }}</strong></span>
+          <span>Planned Target: <strong>₱{{ plannedMealCost() | number: '1.0-0' }}</strong></span>
+        </div>
+        <div class="fund-details">
+          <span>Food budget <strong>₱{{ currentProfile.food_budget || '0' }}</strong></span>
+          <span>Emergency fund <strong>{{ currentProfile.emergency_fund_percent }}%</strong></span>
+          <span>Daily meal cap <strong>₱{{ currentProfile.daily_meal_budget_cap || '0' }}</strong></span>
+        </div>
+        @if (isBudgetFormOpen()) {
+        <form class="inline-form budget-form" [formGroup]="budgetForm" (ngSubmit)="saveBudget()">
+          <label
+            >Weekly allowance (₱)<input type="number" min="0" step="0.01" formControlName="weeklyAllowance"
+          /></label>
+          <label
+            >Emergency fund (%)<input type="number" min="0" max="100" step="1" formControlName="emergencyPercent"
+          /></label>
+          <fieldset>
+            <legend>Dorm equipment</legend>
+            <label
+              ><input
+                type="checkbox"
+                [checked]="isEquipmentSelected('rice_cooker')"
+                (change)="toggleEquipment('rice_cooker')"
+              />
+              Rice cooker</label
+            >
+            <label
+              ><input
+                type="checkbox"
+                [checked]="isEquipmentSelected('electric_kettle')"
+                (change)="toggleEquipment('electric_kettle')"
+              />
+              Electric kettle</label
+            >
+            <label
+              ><input
+                type="checkbox"
+                [checked]="isEquipmentSelected('microwave')"
+                (change)="toggleEquipment('microwave')"
+              />
+              Microwave</label
+            >
+            <label
+              ><input
+                type="checkbox"
+                [checked]="isEquipmentSelected('single_burner')"
+                (change)="toggleEquipment('single_burner')"
+              />
+              Single burner</label
+            >
+          </fieldset>
+          <button class="primary-button" type="submit" [disabled]="isSaving()">
+            {{ isSaving() ? 'Saving...' : 'Save budget setup' }}
+          </button>
+        </form>
+        }
+      </article>
+
+      <div class="stats-grid">
+        <button type="button" (click)="selectSection('meal-plans')">
+          <ion-icon name="calendar-outline"></ion-icon><span>Meals Planned</span
+          ><strong>{{ plannedMeals().length }} / 21</strong>
+        </button>
+        <button type="button" (click)="selectSection('groceries')">
+          <ion-icon name="basket-outline"></ion-icon><span>Grocery Items</span
+          ><strong>{{ groceryItems().length }}</strong>
+        </button>
+        <button type="button" (click)="selectSection('pantry')">
+          <ion-icon name="cube-outline"></ion-icon><span>Expiring Soon</span
+          ><strong class="warning">{{ pantryItems().filter(isExpiringSoon).length }}</strong>
+        </button>
+      </div>
+
+      <p class="section-label">QUICK ACTIONS</p>
+      <div class="quick-actions">
+        <button class="primary-button" type="button" (click)="createBudgetPlan()">
+          <ion-icon name="sparkles-outline"></ion-icon> Auto-Fill Budget Plan
+        </button>
+        <button class="secondary-button" type="button" (click)="openPantryForm()">
+          <ion-icon name="add-outline"></ion-icon> Add Pantry Item
+        </button>
+      </div>
+      <div class="quick-actions secondary-actions">
+        <button class="secondary-button" type="button" (click)="selectSection('expenses')">
+          <ion-icon name="receipt-outline"></ion-icon> Log Spending
+        </button>
+        <button class="secondary-button" type="button" (click)="selectSection('nutrition')">
+          <ion-icon name="nutrition-outline"></ion-icon> Nutrition Log
+        </button>
+      </div>
+
+      <article class="schedule-card">
+        <div class="card-heading">
+          <h2><ion-icon name="restaurant-outline"></ion-icon> Today's Schedule ({{ currentDay() }})</h2>
+          <button class="text-button" type="button" (click)="selectSection('meal-plans')">View All</button>
+        </div>
+        @for (meal of mealsForDay(currentDay()); track $index) {
+        <div class="schedule-row">
+          <span class="meal-tag">{{ meal.category }}</span>
+          <div class="meal-info">
+            <strong>{{ meal.name }}</strong><small>{{ meal.minutes }} mins · Budget Pick</small>
+          </div>
+          <strong class="price">₱{{ meal.cost }}</strong>
+        </div>
+        } @empty {
+        <p class="empty-state">No meals planned yet. Tap Auto-Fill Budget Plan to get started.</p>
+        }
+      </article>
+    </section>
+    } @if (selectedSection() === 'meal-plans') {
+    <section class="page-section">
+      <div class="page-title-row">
+        <div>
+          <h1>Weekly Meal Planner</h1>
+          <p>Target budget: ₱{{ currentProfile.food_budget || '0' }}</p>
+        </div>
+        <button class="primary-button compact-button" type="button" (click)="createBudgetPlan()">
+          <ion-icon name="sparkles-outline"></ion-icon> Auto-Optimize
+        </button>
+      </div>
+      <div class="cost-banner">
+        <span>Est. Total Meal Plan Cost:</span
+        ><strong>₱{{ plannedMealCost() }} / ₱{{ currentProfile.food_budget || '0' }}</strong>
+      </div>
+      <article class="info-card">
+        <div><ion-icon name="receipt-outline"></ion-icon><strong>Recipe Scaler &amp; Cost Estimator</strong></div>
+        <p>Tap a recipe below to edit the meal and its estimated cost.</p>
+      </article>
+      <form class="inline-form plan-form" [formGroup]="mealPlanForm" (ngSubmit)="saveMealPlan()">
+        <label>Plan name<input type="text" formControlName="title" /></label>
+        <label>Week starts<input type="date" formControlName="weekStart" /></label>
+        <button class="primary-button" type="submit">
+          {{ editingMealPlanId() ? 'Save plan details' : 'Create weekly plan' }}
+        </button>
+        @if (editingMealPlanId()) {
+        <button class="text-button" type="button" (click)="cancelEdit(editingMealPlanId, mealPlanForm)">Cancel</button>
+        }
+      </form>
+      @if (mealPlans().length > 1) {
+      <div class="plan-picker">
+        @for (plan of mealPlans(); track plan.id) {
+        <button type="button" [class.selected]="currentMealPlan()?.id === plan.id" (click)="selectMealPlan(plan.id)">
+          {{ plan.title }} <span>{{ plan.week_start }}</span>
+        </button>
+        }
+      </div>
+      } @if (currentMealPlan(); as activePlan) {
+      <div class="plan-controls">
+        <strong>{{ activePlan.title }}</strong>
+        <div class="row-actions">
+          <button type="button" (click)="editMealPlan(activePlan)">Edit title</button>
+          <button
+            class="delete-button"
+            type="button"
+            (click)="deleteMealPlan(activePlan.id)"
+            aria-label="Delete meal plan"
+          >
+            <ion-icon name="trash-outline"></ion-icon>
+          </button>
+        </div>
+      </div>
+      }
+      <form class="inline-form meal-form" [formGroup]="mealForm" (ngSubmit)="saveMealEntry()">
+        <h2>{{ editingMealIndex() === null ? 'Add a meal' : 'Edit meal' }}</h2>
+        <div class="form-grid">
+          <label
+            >Day<select formControlName="day">
+              @for (day of weekdays; track day) {
+              <option [value]="day">{{ day }}</option>
+              }
+            </select></label
+          >
+          <label
+            >Meal<select formControlName="category">
+              <option value="breakfast">Breakfast</option>
+              <option value="lunch">Lunch</option>
+              <option value="dinner">Dinner</option>
+              <option value="snack">Snack</option>
+            </select></label
+          >
+          <label class="wide-field"
+            >Recipe<input type="text" formControlName="name" placeholder="e.g. Egg & Garlic Rice Bowl"
+          /></label>
+          <label>Cost (₱)<input type="number" min="0" formControlName="cost" /></label>
+          <label>Minutes<input type="number" min="1" formControlName="minutes" /></label>
+          <label class="wide-field"
+            >Ingredients (Name:price, comma separated)<input
+              type="text"
+              formControlName="ingredients"
+              placeholder="Eggs:15, Rice:15, Garlic:5"
+          /></label>
+        </div>
+        <div class="form-actions">
+          <button class="primary-button" type="submit">
+            {{ editingMealIndex() === null ? 'Save meal' : 'Update meal' }}
+          </button>
+          @if (editingMealIndex() !== null) {<button
+            class="text-button"
+            type="button"
+            (click)="editingMealIndex.set(null); mealForm.reset()"
+          >
+            Cancel</button
+          >}
+        </div>
+      </form>
+      @if (plannedMeals().length) { @for (day of weekdays; track day) { @if (mealsForDay(day).length) {
+      <article class="day-card">
+        <div class="day-heading">
+          <ion-icon name="calendar-outline"></ion-icon><strong>{{ day | uppercase }}</strong
+          ><span>Day Total: ₱{{ dayTotal(day) }}</span>
+        </div>
+        @for (meal of mealsForDay(day); track $index) {
+        <div class="schedule-row">
+          <span class="meal-tag">{{ meal.category }}</span>
+          <div class="meal-info"><strong>{{ meal.name }}</strong><small>{{ meal.minutes }} mins</small></div>
+          <strong class="price">₱{{ meal.cost }}</strong>
+          <button class="icon-button" type="button" (click)="editMealEntry(mealIndex(meal))" aria-label="Edit meal">
+            <ion-icon name="create-outline"></ion-icon>
+          </button>
+          <button
+            class="icon-button delete-button"
+            type="button"
+            (click)="deleteMealEntry(mealIndex(meal))"
+            aria-label="Delete meal"
+          >
+            <ion-icon name="trash-outline"></ion-icon>
+          </button>
+        </div>
+        }
+      </article>
+      } } } @else {
+      <p class="empty-state">Create a weekly plan or add meals to begin planning.</p>
+      }
+      <button class="secondary-button full-button" type="button" (click)="generateGroceryList()">
+        <ion-icon name="basket-outline"></ion-icon> Generate Grocery List from Meal Plan
+      </button>
+    </section>
+    } @if (selectedSection() === 'groceries') {
+    <section class="page-section">
+      <div class="page-title-row">
+        <div>
+          <h1>Automated Grocery List</h1>
+          <p>Auto-generated from meal plan ingredients</p>
+        </div>
+        <button class="primary-button compact-button" type="button" (click)="toggleGroceryForm()">
+          <ion-icon name="add-outline"></ion-icon> Add Item
+        </button>
+      </div>
+      <div class="grocery-summary">
+        <div><span>Est. Total Grocery Cost</span><strong>₱{{ groceryTotal() | number: '1.0-0' }}</strong></div>
+        <div><span>Total Consolidated Items</span><strong>{{ groceryItems().length }} items</strong></div>
+      </div>
+      @if (isGroceryFormOpen()) {
+      <form class="inline-form" [formGroup]="groceryForm" (ngSubmit)="saveGroceryItem()">
+        <h2>{{ editingGroceryId() ? 'Edit grocery item' : 'Add grocery item' }}</h2>
+        <label>Item name<input type="text" formControlName="name" placeholder="e.g. Rice" /></label>
+        <div class="form-grid">
+          <label>Quantity<input type="number" min="0.01" step="0.01" formControlName="quantity" /></label>
+          <label>Unit<input type="text" formControlName="unit" /></label>
+          <label>Estimated price (₱)<input type="number" min="0" step="0.01" formControlName="estimatedPrice" /></label>
+          <label>Category<input type="text" formControlName="category" placeholder="Produce" /></label>
+        </div>
+        <div class="form-actions">
+          <button class="primary-button" type="submit">{{ editingGroceryId() ? 'Update item' : 'Add item' }}</button
+          ><button class="text-button" type="button" (click)="toggleGroceryForm()">Cancel</button>
+        </div>
+      </form>
+      } @for (category of groceryCategories(); track category) {
+      <article class="grocery-category">
+        <h2><ion-icon name="cube-outline"></ion-icon> {{ category | uppercase }}</h2>
+        @for (item of groceriesInCategory(category); track item.id) {
+        <div class="grocery-row">
+          <label class="grocery-check"
+            ><input type="checkbox" [checked]="item.is_checked" (change)="toggleGroceryItem(item)" /><span
+              [class.checked]="item.is_checked"
+              >{{ item.name }} <small>{{ item.quantity }} {{ item.unit }}</small></span
+            ></label
+          >
+          <div class="row-actions">
+            <strong class="price">₱{{ item.estimated_price }}</strong
+            ><button class="icon-button" type="button" (click)="editGroceryItem(item)" aria-label="Edit grocery item">
+              <ion-icon name="create-outline"></ion-icon></button
+            ><button
+              class="icon-button delete-button"
+              type="button"
+              (click)="deleteGroceryItem(item.id)"
+              aria-label="Delete grocery item"
+            >
+              <ion-icon name="trash-outline"></ion-icon>
+            </button>
+          </div>
+        </div>
+        }
+      </article>
+      } @empty {
+      <p class="empty-state">Your grocery list is empty. Add items or generate it from the weekly meal plan.</p>
+      }
+    </section>
+    } @if (selectedSection() === 'pantry') {
+    <section class="page-section">
+      <div class="page-title-row">
+        <div>
+          <h1>Pantry &amp; Expiration Tracker</h1>
+          <p>Prevent food waste and track ingredients</p>
+        </div>
+        <button class="primary-button compact-button" type="button" (click)="togglePantryForm()">
+          <ion-icon name="add-outline"></ion-icon> Add Pantry Item
+        </button>
+      </div>
+      @if (isPantryFormOpen()) {
+      <form class="inline-form" [formGroup]="pantryForm" (ngSubmit)="savePantryItem()">
+        <h2>{{ editingPantryId() ? 'Edit pantry item' : 'Add pantry item' }}</h2>
+        <label>Item name<input type="text" formControlName="name" placeholder="e.g. Eggs" /></label>
+        <div class="form-grid">
+          <label>Quantity<input type="number" min="0.01" step="0.01" formControlName="quantity" /></label>
+          <label>Unit<input type="text" formControlName="unit" placeholder="pieces" /></label>
+          <label>Category<input type="text" formControlName="category" placeholder="Produce" /></label>
+          <label>Expires on<input type="date" formControlName="expiresOn" /></label>
+        </div>
+        <div class="form-actions">
+          <button class="primary-button" type="submit">{{ editingPantryId() ? 'Update item' : 'Save item' }}</button
+          ><button class="text-button" type="button" (click)="togglePantryForm()">Cancel</button>
+        </div>
+      </form>
+      } @for (item of pantryItems(); track item.id) {
+      <article class="pantry-row" [class.consumed]="item.is_consumed">
+        <div class="pantry-info">
+          <div><strong>{{ item.name }}</strong><span>{{ item.quantity }} {{ item.unit }}</span></div>
+          <small>{{ item.category || 'Pantry' }}</small
+          ><span
+            class="expiry-badge"
+            [class.expired]="isPantryExpired(item)"
+            [class.soon]="pantryExpiryLabel(item) === 'Use today'"
+            >{{ item.is_consumed ? 'USED' : pantryExpiryLabel(item) }}</span
+          >
+        </div>
+        <div class="row-actions">
+          <button
+            class="icon-button"
+            type="button"
+            (click)="togglePantryItem(item)"
+            [attr.aria-label]="item.is_consumed ? 'Mark item as available' : 'Mark item as used'"
+          >
+            <ion-icon name="checkmark-outline"></ion-icon></button
+          ><button class="icon-button" type="button" (click)="editPantryItem(item)" aria-label="Edit pantry item">
+            <ion-icon name="create-outline"></ion-icon></button
+          ><button
+            class="icon-button delete-button"
+            type="button"
+            (click)="deletePantryItem(item.id)"
+            aria-label="Delete pantry item"
+          >
+            <ion-icon name="trash-outline"></ion-icon>
+          </button>
+        </div>
+      </article>
+      } @empty {
+      <p class="empty-state">Your pantry is empty. Add ingredients to track expiry dates.</p>
+      }
+    </section>
+    } @if (selectedSection() === 'expenses') {
+    <section class="page-section">
+      <div class="page-title-row">
+        <div>
+          <h1>Daily Spending</h1>
+          <p>Logged this week: ₱{{ spentThisWeek() | number: '1.0-0' }}</p>
+        </div>
+      </div>
+      <form class="inline-form" [formGroup]="expenseForm" (ngSubmit)="saveExpense()">
+        <h2>{{ editingExpenseId() ? 'Edit expense' : 'Log spending' }}</h2>
+        <label>Amount (₱)<input type="number" min="0.01" step="0.01" formControlName="amount" /></label>
+        <label
+          >Meal/category<select formControlName="category">
+            <option value="breakfast">Breakfast</option>
+            <option value="lunch">Lunch</option>
+            <option value="dinner">Dinner</option>
+            <option value="snack">Snack</option>
+            <option value="other">Other</option>
+          </select></label
+        >
+        <label>Note<input type="text" maxlength="255" formControlName="note" placeholder="Optional" /></label>
+        <div class="form-actions">
+          <button class="primary-button" type="submit">
+            {{ editingExpenseId() ? 'Update expense' : 'Add expense' }}</button
+          >@if (editingExpenseId()) {<button
+            class="text-button"
+            type="button"
+            (click)="cancelEdit(editingExpenseId, expenseForm)"
+          >
+            Cancel</button
+          >}
+        </div>
+      </form>
+      @for (item of expenses(); track item.id) {
+      <article class="simple-row">
+        <div>
+          <strong>₱{{ item.amount }} · {{ item.category }}</strong><small>{{ item.note || item.spent_at }}</small>
+        </div>
+        <div class="row-actions">
+          <button class="icon-button" type="button" (click)="editExpense(item)" aria-label="Edit expense">
+            <ion-icon name="create-outline"></ion-icon></button
+          ><button
+            class="icon-button delete-button"
+            type="button"
+            (click)="deleteExpense(item.id)"
+            aria-label="Delete expense"
+          >
+            <ion-icon name="trash-outline"></ion-icon>
+          </button>
+        </div>
+      </article>
+      } @empty {
+      <p class="empty-state">No spending logged yet.</p>
+      }
+    </section>
+    } @if (selectedSection() === 'nutrition') {
+    <section class="page-section">
+      <div class="page-title-row">
+        <div>
+          <h1>Nutrition Scorecard</h1>
+          <p>Track protein, fiber &amp; energy</p>
+        </div>
+      </div>
+      <form class="inline-form" [formGroup]="nutritionForm" (ngSubmit)="saveNutritionLog()">
+        <h2>{{ editingNutritionId() ? 'Edit nutrition log' : 'Add a meal log' }}</h2>
+        <label>Date<input type="date" formControlName="loggedOn" /></label
+        ><label>Meal name<input type="text" formControlName="mealName" placeholder="e.g. Egg rice bowl" /></label>
+        <div class="form-grid three-fields">
+          <label>Calories<input type="number" min="0" formControlName="calories" /></label
+          ><label>Protein (g)<input type="number" min="0" step="0.1" formControlName="protein" /></label
+          ><label>Fiber (g)<input type="number" min="0" step="0.1" formControlName="fiber" /></label>
+        </div>
+        <div class="form-actions">
+          <button class="primary-button" type="submit">
+            {{ editingNutritionId() ? 'Update log' : 'Add nutrition log' }}</button
+          >@if (editingNutritionId()) {<button
+            class="text-button"
+            type="button"
+            (click)="cancelEdit(editingNutritionId, nutritionForm)"
+          >
+            Cancel</button
+          >}
+        </div>
+      </form>
+      @for (item of nutritionLogs(); track item.id) {
+      <article class="simple-row">
+        <div>
+          <strong>{{ item.meal_name || 'Meal' }} · {{ item.logged_on }}</strong
+          ><small>{{ item.calories }} kcal · {{ item.protein_g }}g protein · {{ item.fiber_g }}g fiber</small>
+        </div>
+        <div class="row-actions">
+          <button class="icon-button" type="button" (click)="editNutritionLog(item)" aria-label="Edit nutrition log">
+            <ion-icon name="create-outline"></ion-icon></button
+          ><button
+            class="icon-button delete-button"
+            type="button"
+            (click)="deleteNutritionLog(item.id)"
+            aria-label="Delete nutrition log"
+          >
+            <ion-icon name="trash-outline"></ion-icon>
+          </button>
+        </div>
+      </article>
+      } @empty {
+      <p class="empty-state">No nutrition logs yet.</p>
+      }
+    </section>
+    }
+
+    <nav class="bottom-nav" aria-label="Main navigation">
+      <button type="button" [class.active]="selectedSection() === 'overview'" (click)="selectSection('overview')">
+        <ion-icon name="home-outline"></ion-icon><span>Dashboard</span>
+      </button>
+      <button type="button" [class.active]="selectedSection() === 'meal-plans'" (click)="selectSection('meal-plans')">
+        <ion-icon name="calendar-outline"></ion-icon><span>Meal Plan</span>
+      </button>
+      <button type="button" [class.active]="selectedSection() === 'groceries'" (click)="selectSection('groceries')">
+        <ion-icon name="basket-outline"></ion-icon><span>Grocery</span><b>{{ groceryItems().length }}</b>
+      </button>
+      <button type="button" [class.active]="selectedSection() === 'pantry'" (click)="selectSection('pantry')">
+        <ion-icon name="cube-outline"></ion-icon><span>Pantry</span
+        ><b class="alert-badge">{{ pantryItems().length }}</b>
+      </button>
+    </nav>
+    } }
+  </main>
+</ion-content>

@@ -35,3 +35,141 @@
 /* @import "@ionic/angular/css/palettes/dark.always.css"; */
 /* @import "@ionic/angular/css/palettes/dark.class.css"; */
 @import '@ionic/angular/css/palettes/dark.system.css';
+
+app-dashboard{--dashboard-bg:#050919;--dashboard-surface:#1b2638;--dashboard-raised:#101a2b;--dashboard-line:#27354a;--dashboard-muted:#99a7bb;--dashboard-text:#eef3fa;--dashboard-green:#18c979;display:block;min-height:100%;color:var(--dashboard-text);font-family:Arial,Helvetica,sans-serif}
+app-dashboard ion-content{--background:var(--dashboard-bg)}
+app-dashboard .dashboard-shell{box-sizing:border-box;width:min(100%,560px);min-height:100%;margin:auto;padding:max(14px,env(safe-area-inset-top)) 12px calc(88px + env(safe-area-inset-bottom))}
+app-dashboard .topbar,app-dashboard .brand,app-dashboard .topbar-actions,app-dashboard .budget-heading,app-dashboard .budget-main,app-dashboard .planned-line,app-dashboard .budget-footer,app-dashboard .fund-details,app-dashboard .page-title-row,app-dashboard .card-heading,app-dashboard .schedule-row,app-dashboard .day-heading,app-dashboard .grocery-row,app-dashboard .pantry-row,app-dashboard .simple-row,app-dashboard .plan-controls,app-dashboard .row-actions,app-dashboard .form-actions{display:flex;align-items:center}
+app-dashboard .topbar{justify-content:space-between;gap:8px;min-height:42px;margin-bottom:12px}
+app-dashboard .brand{gap:7px;min-width:0}
+app-dashboard .brand-icon{display:grid;place-items:center;flex:0 0 34px;width:34px;height:34px;border-radius:10px;color:#052015;background:var(--dashboard-green);font-size:20px}
+app-dashboard .brand>div{display:grid;gap:3px}app-dashboard .brand strong{font-size:12px;white-space:nowrap}app-dashboard .brand strong small{padding:3px 5px;border:1px solid #126b4a;border-radius:8px;color:var(--dashboard-green);font-size:6px;vertical-align:2px}
+app-dashboard .brand>div>span{color:var(--dashboard-muted);font-size:8px}
+app-dashboard .topbar-actions{gap:6px}
+app-dashboard .allowance-pill,app-dashboard .account-trigger{display:flex;align-items:center;justify-content:center;gap:4px;min-height:30px;padding:0 9px;border:1px solid var(--dashboard-line);border-radius:9px;color:var(--dashboard-text);background:var(--dashboard-surface);font-size:9px}
+app-dashboard .allowance-pill ion-icon{color:var(--dashboard-green)}app-dashboard .account-trigger{width:32px;padding:0;color:var(--dashboard-muted);font-size:19px}
+app-dashboard .account-trigger:hover,app-dashboard .account-trigger[aria-expanded=true]{border-color:var(--dashboard-green);color:var(--dashboard-green)}
+app-dashboard .account-panel{position:absolute;z-index:11;top:58px;right:max(12px,calc((100vw - 560px)/2 + 12px));width:min(310px,calc(100vw - 24px));padding:13px;border:1px solid var(--dashboard-line);border-radius:13px;background:#172337;box-shadow:0 12px 32px #0009}
+app-dashboard .account-panel-heading{display:flex;align-items:center;gap:9px}
+app-dashboard .account-avatar{display:grid;place-items:center;flex:0 0 38px;width:38px;height:38px;border:1px solid #17583f;border-radius:11px;color:var(--dashboard-green);background:#102a29;font-size:23px}
+app-dashboard .account-identity{display:grid;flex:1;gap:4px;min-width:0}
+app-dashboard .account-identity strong{overflow:hidden;color:var(--dashboard-text);text-overflow:ellipsis;white-space:nowrap;font-size:11px}
+app-dashboard .account-identity span,app-dashboard .account-identity small{overflow:hidden;color:var(--dashboard-muted);text-overflow:ellipsis;white-space:nowrap;font-size:8px}
+app-dashboard .account-close{align-self:flex-start;border:0;color:var(--dashboard-muted);background:none;font-size:20px}
+app-dashboard .account-actions{display:grid;gap:6px;margin-top:12px;padding-top:10px;border-top:1px solid var(--dashboard-line)}
+app-dashboard .account-actions button{display:flex;align-items:center;gap:8px;min-height:34px;padding:7px 9px;border:1px solid transparent;border-radius:8px;color:#dce4ef;background:#202d41;text-align:left;font:inherit;font-size:9px}
+app-dashboard .account-actions button ion-icon{font-size:14px}
+app-dashboard .account-actions .account-signout{border-color:#51303e;color:#ff9baa;background:#2c1d2b}
+app-dashboard h1,app-dashboard h2,app-dashboard p{margin-top:0}
+app-dashboard h1{margin-bottom:4px;font-size:14px;font-weight:750;letter-spacing:-.02em}
+app-dashboard h2{margin-bottom:0;font-size:12px}
+app-dashboard .home-section,app-dashboard .page-section{display:grid;gap:12px}
+app-dashboard .budget-card,app-dashboard .schedule-card,app-dashboard .day-card,app-dashboard .grocery-category,app-dashboard .pantry-row,app-dashboard .simple-row,app-dashboard .info-card{border:1px solid var(--dashboard-line);border-radius:13px;background:var(--dashboard-surface)}
+app-dashboard .budget-card{padding:14px}
+app-dashboard .budget-heading,app-dashboard .budget-main,app-dashboard .planned-line,app-dashboard .budget-footer{justify-content:space-between}
+app-dashboard .budget-heading span,app-dashboard .planned-line,app-dashboard .budget-footer,app-dashboard .fund-details{color:var(--dashboard-muted);font-size:8px}
+app-dashboard .budget-main{margin:4px 0 10px}
+app-dashboard .allowance{font-size:21px;letter-spacing:-.04em}
+app-dashboard .money-left{color:var(--dashboard-green);font-size:17px}.money-left.over-budget{color:#f06d83}
+app-dashboard .text-button{display:inline-flex;align-items:center;gap:3px;padding:2px;border:0;color:var(--dashboard-green);background:none;font:inherit;font-size:8px}
+app-dashboard .text-button ion-icon{font-size:11px}
+app-dashboard .planned-line{margin-bottom:6px;font-weight:650}
+app-dashboard .progress-track{height:5px;margin-bottom:10px;overflow:hidden;border-radius:9px;background:#101a2b}
+app-dashboard .progress-track span{display:block;height:100%;max-width:100%;border-radius:9px;background:var(--dashboard-green)}
+app-dashboard .budget-footer{justify-content:space-between;gap:6px;padding-top:8px;border-top:1px solid var(--dashboard-line)}
+app-dashboard .budget-footer strong{margin-left:3px;color:#dce4ef;font-size:8px}
+app-dashboard .fund-details{display:flex;flex-wrap:wrap;justify-content:space-between;gap:5px;margin-top:8px}
+app-dashboard .fund-details strong{color:var(--dashboard-text)}
+app-dashboard .stats-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+app-dashboard .stats-grid button{display:grid;justify-items:center;gap:4px;min-height:70px;padding:9px 3px;border:1px solid var(--dashboard-line);border-radius:12px;color:var(--dashboard-muted);background:var(--dashboard-surface);font:inherit;font-size:8px}
+app-dashboard .stats-grid ion-icon{color:var(--dashboard-green);font-size:15px}
+app-dashboard .stats-grid strong{color:var(--dashboard-text);font-size:12px}.stats-grid strong.warning{color:#f06d83}
+app-dashboard .section-label{margin:1px 0 -7px;color:var(--dashboard-muted);font-size:8px;font-weight:750;letter-spacing:.08em}
+app-dashboard .quick-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+app-dashboard .primary-button,app-dashboard .secondary-button{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:36px;padding:8px 10px;border:0;border-radius:10px;font:inherit;font-size:9px;font-weight:750}
+app-dashboard .primary-button{color:#03150d;background:var(--dashboard-green)}
+app-dashboard .primary-button:disabled{opacity:.55}
+app-dashboard .secondary-button{border:1px solid var(--dashboard-line);color:#e0e7f0;background:#29364a}
+app-dashboard .quick-actions ion-icon,app-dashboard .primary-button ion-icon,app-dashboard .secondary-button ion-icon{font-size:13px}
+app-dashboard .secondary-actions .secondary-button{min-height:31px;color:#bdc9d8;background:var(--dashboard-raised)}
+app-dashboard .schedule-card{padding:12px 10px}
+app-dashboard .card-heading{justify-content:space-between;gap:5px;margin-bottom:9px}
+app-dashboard .card-heading h2{display:flex;align-items:center;gap:5px;font-size:10px}
+app-dashboard .card-heading h2 ion-icon{color:var(--dashboard-green);font-size:12px}
+app-dashboard .schedule-row{gap:6px;min-height:43px;margin-top:5px;padding:7px;border-radius:8px;background:var(--dashboard-raised)}
+app-dashboard .meal-tag{flex:0 0 48px;padding:5px 3px;border:1px solid #29374a;border-radius:5px;color:#b8c5d5;background:#1a2636;text-align:center;text-transform:uppercase;font-size:7px}
+app-dashboard .meal-info{display:grid;flex:1;gap:3px;min-width:0}
+app-dashboard .meal-info strong{overflow:hidden;color:#e5ebf3;text-overflow:ellipsis;white-space:nowrap;font-size:9px}
+app-dashboard .meal-info small,app-dashboard .empty-state{color:var(--dashboard-muted);font-size:8px}
+app-dashboard .price{color:var(--dashboard-green);font-size:9px}
+app-dashboard .bottom-nav{position:fixed;z-index:10;right:0;bottom:0;left:50%;display:grid;grid-template-columns:repeat(4,1fr);width:min(100%,560px);min-height:58px;padding:5px 5px max(5px,env(safe-area-inset-bottom));transform:translateX(-50%);border-top:1px solid #1e2b3e;background:#0d1728}
+app-dashboard .bottom-nav button{position:relative;display:grid;justify-items:center;align-content:center;gap:3px;border:0;color:#8492a8;background:none;font:inherit;font-size:7px}
+app-dashboard .bottom-nav button ion-icon{font-size:15px}
+app-dashboard .bottom-nav button.active{color:var(--dashboard-green)}
+app-dashboard .bottom-nav button b{position:absolute;top:0;left:calc(50% + 5px);display:grid;place-items:center;min-width:13px;height:13px;padding:0 2px;border-radius:9px;color:#032014;background:var(--dashboard-green);font-size:7px}
+app-dashboard .bottom-nav button b.alert-badge{color:white;background:#e4425c}
+app-dashboard .page-title-row{justify-content:space-between;gap:8px}
+app-dashboard .page-title-row p{margin:4px 0 0;color:var(--dashboard-muted);font-size:9px}
+app-dashboard .compact-button{min-height:31px;padding:7px 9px;font-size:8px;white-space:nowrap}
+app-dashboard .cost-banner,app-dashboard .grocery-summary{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:12px;border:1px solid var(--dashboard-line);border-radius:11px;background:var(--dashboard-surface);font-size:9px}
+app-dashboard .cost-banner span,app-dashboard .grocery-summary span{color:var(--dashboard-muted)}
+app-dashboard .cost-banner strong{color:#f06d83;font-size:10px}
+app-dashboard .grocery-summary{border-color:#17533e;background:linear-gradient(110deg,#102b27,#152638)}
+app-dashboard .grocery-summary>div{display:grid;gap:4px}.grocery-summary>div:last-child{text-align:right}
+app-dashboard .grocery-summary strong{color:var(--dashboard-green);font-size:16px}
+app-dashboard .grocery-summary>div:last-child strong{color:var(--dashboard-text);font-size:11px}
+app-dashboard .info-card{padding:11px}
+app-dashboard .info-card>div{display:flex;align-items:center;gap:6px;color:var(--dashboard-green);font-size:9px}
+app-dashboard .info-card>div ion-icon{font-size:13px}
+app-dashboard .info-card p{margin:6px 0 0;color:var(--dashboard-muted);font-size:8px}
+app-dashboard .inline-form{display:grid;gap:9px;padding:12px;border:1px solid var(--dashboard-line);border-radius:11px;background:#111b2c}
+app-dashboard .inline-form h2{margin:0 0 2px;font-size:11px}
+app-dashboard .inline-form>label,app-dashboard .form-grid>label{display:grid;gap:5px;color:#cbd5e2;font-size:8px}
+app-dashboard .inline-form input:not([type=checkbox]),app-dashboard .inline-form select{box-sizing:border-box;width:100%;min-height:34px;padding:7px 8px;border:1px solid #2c394d;border-radius:7px;outline:0;color:var(--dashboard-text);background:#0b1423;font:inherit;font-size:10px}
+app-dashboard .inline-form input:focus,app-dashboard .inline-form select:focus{border-color:var(--dashboard-green)}
+app-dashboard .form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+app-dashboard .form-grid.three-fields{grid-template-columns:repeat(3,minmax(0,1fr))}
+app-dashboard .wide-field{grid-column:1/-1}
+app-dashboard .inline-form fieldset{display:flex;flex-wrap:wrap;gap:8px;margin:0;padding:8px;border:1px solid #2c394d;border-radius:8px}
+app-dashboard .inline-form legend{padding:0 4px;color:var(--dashboard-muted);font-size:8px}
+app-dashboard .inline-form fieldset label{display:flex;align-items:center;gap:4px;color:#cbd5e2;font-size:8px}
+app-dashboard input[type=checkbox]{accent-color:var(--dashboard-green)}
+app-dashboard .form-actions{flex-wrap:wrap;gap:7px}
+app-dashboard .form-actions .primary-button{min-height:32px}
+app-dashboard .plan-picker{display:flex;gap:6px;overflow-x:auto}
+app-dashboard .plan-picker button{flex:0 0 auto;display:grid;gap:3px;padding:8px;border:1px solid var(--dashboard-line);border-radius:8px;color:var(--dashboard-text);background:var(--dashboard-surface);font:inherit;font-size:8px}
+app-dashboard .plan-picker button.selected{border-color:var(--dashboard-green)}
+app-dashboard .plan-picker span{color:var(--dashboard-muted);font-size:7px}
+app-dashboard .plan-controls{justify-content:space-between;gap:5px;padding:9px;border:1px solid var(--dashboard-line);border-radius:9px;color:var(--dashboard-text);background:var(--dashboard-surface);font-size:9px}
+app-dashboard .row-actions{justify-content:flex-end;gap:4px}
+app-dashboard .row-actions button:not(.icon-button){padding:6px 8px;border:1px solid var(--dashboard-line);border-radius:6px;color:#cbd5e2;background:#111b2c;font:inherit;font-size:8px}
+app-dashboard .icon-button{display:grid;place-items:center;flex:0 0 25px;width:25px;height:25px;border:0;border-radius:6px;color:#aab8ca;background:#243146;font-size:12px}
+app-dashboard .delete-button{color:#f08290!important}
+app-dashboard .day-card{padding:9px}
+app-dashboard .day-heading{gap:5px;padding:2px 3px 7px;color:#aebbd0;font-size:8px}
+app-dashboard .day-heading ion-icon{color:var(--dashboard-green)}
+app-dashboard .day-heading span{margin-left:auto;color:var(--dashboard-muted)}
+app-dashboard .grocery-category{padding:10px}
+app-dashboard .grocery-category h2{display:flex;align-items:center;gap:5px;margin:0 0 6px;color:#aebbd0;font-size:8px}
+app-dashboard .grocery-category h2 ion-icon{color:var(--dashboard-green);font-size:11px}
+app-dashboard .grocery-row{justify-content:space-between;gap:6px;min-height:34px;padding:5px 0;border-bottom:1px solid #29364a}
+app-dashboard .grocery-row:last-child{border-bottom:0}
+app-dashboard .grocery-check{display:flex;align-items:center;gap:7px;min-width:0;color:#e2e8f0;font-size:9px}
+app-dashboard .grocery-check span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+app-dashboard .grocery-check small{margin-left:4px;padding:3px 5px;border-radius:5px;color:#9eacc0;background:#26344a;font-size:7px}
+app-dashboard .checked{text-decoration:line-through;color:var(--dashboard-muted)}
+app-dashboard .pantry-row,app-dashboard .simple-row{justify-content:space-between;gap:7px;padding:11px}
+app-dashboard .pantry-info,.simple-row>div:first-child{display:grid;gap:5px;min-width:0}
+app-dashboard .pantry-info>div{display:flex;align-items:center;gap:7px}
+app-dashboard .pantry-info strong,.simple-row strong{font-size:10px}
+app-dashboard .pantry-info>div>span,.pantry-info>small,.simple-row small{color:var(--dashboard-muted);font-size:8px}
+app-dashboard .expiry-badge{width:max-content;padding:4px 6px;border:1px solid #175a45;border-radius:5px;color:var(--dashboard-green);background:#102a29;font-size:7px}
+app-dashboard .expiry-badge.soon{border-color:#886b25;color:#edc76c;background:#362f1b}
+app-dashboard .expiry-badge.expired{border-color:#783c4b;color:#f28b9b;background:#371e2c}
+app-dashboard .pantry-row.consumed{opacity:.55}
+app-dashboard .simple-row{min-height:43px}
+app-dashboard .empty-state{padding:8px 2px;line-height:1.5}
+app-dashboard .full-button{width:100%}
+app-dashboard .status-message{padding:12px;border:1px solid var(--dashboard-line);border-radius:10px;color:var(--dashboard-muted);background:var(--dashboard-surface);font-size:11px}
+app-dashboard .error-message{border-color:#db6675;color:#ffabb2}
+@media(min-width:560px){app-dashboard .dashboard-shell{padding-right:18px;padding-left:18px}app-dashboard .home-section,app-dashboard .page-section{gap:14px}}
