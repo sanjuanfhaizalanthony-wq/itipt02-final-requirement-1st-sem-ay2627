@@ -127,7 +127,9 @@ describe('DashboardPage', () => {
     fixture.componentInstance.selectSection('groceries');
     fixture.detectChanges();
 
-    expect(fixture.nativeElement.textContent).toContain('Automated Grocery List');
+    expect(fixture.nativeElement.textContent).toContain('Grocery List');
+    expect(fixture.nativeElement.textContent).toContain('Add and manage your grocery items manually');
+    expect(fixture.nativeElement.textContent).not.toContain('Generate Grocery List from Meal Plan');
   });
 
   it('should return to registration when the access token has expired', async () => {

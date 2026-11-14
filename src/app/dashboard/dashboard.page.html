@@ -318,16 +318,13 @@
       } } } @else {
       <p class="empty-state">Create a weekly plan or add meals to begin planning.</p>
       }
-      <button class="secondary-button full-button" type="button" (click)="generateGroceryList()">
-        <ion-icon name="basket-outline"></ion-icon> Generate Grocery List from Meal Plan
-      </button>
     </section>
     } @if (selectedSection() === 'groceries') {
     <section class="page-section">
       <div class="page-title-row">
         <div>
-          <h1>Automated Grocery List</h1>
-          <p>Auto-generated from meal plan ingredients</p>
+          <h1>Grocery List</h1>
+          <p>Add and manage your grocery items manually</p>
         </div>
         <button class="primary-button compact-button" type="button" (click)="toggleGroceryForm()">
           <ion-icon name="add-outline"></ion-icon> Add Item
@@ -380,7 +377,7 @@
         }
       </article>
       } @empty {
-      <p class="empty-state">Your grocery list is empty. Add items or generate it from the weekly meal plan.</p>
+      <p class="empty-state">Your grocery list is empty. Add items to get started.</p>
       }
     </section>
     } @if (selectedSection() === 'pantry') {

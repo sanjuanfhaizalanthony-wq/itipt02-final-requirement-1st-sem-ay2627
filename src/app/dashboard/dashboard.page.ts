@@ -8,7 +8,6 @@ import { IonContent, IonIcon } from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import {
   addOutline,
-  basketOutline,
   calendarOutline,
   checkmarkOutline,
   createOutline,
@@ -24,7 +23,6 @@ import {
   trashOutline,
   walletOutline,
 } from 'ionicons/icons';
-import { forkJoin } from 'rxjs';
 import type { Observable } from 'rxjs';
 
 import { AuthService, type AuthUser, type UserProfile } from '../core/auth.service';
@@ -178,7 +176,6 @@ export class DashboardPage implements OnInit {
   constructor() {
     addIcons({
       addOutline,
-      basketOutline,
       calendarOutline,
       checkmarkOutline,
       createOutline,
@@ -412,7 +409,6 @@ export class DashboardPage implements OnInit {
         this.mealPlans.update((plans) =>
           existing ? plans.map((item) => (item.id === plan.id ? plan : item)) : [plan, ...plans],
         );
-        this.syncMealIngredients(plan, meals);
       },
       error: (error: HttpErrorResponse) => this.handleSaveError(error),
     });
@@ -465,15 +461,6 @@ export class DashboardPage implements OnInit {
     this.selectedMealPlanId.set(id);
     this.editingMealIndex.set(null);
     this.mealForm.reset();
-  }
-
-  generateGroceryList(): void {
-    const plan = this.currentMealPlan();
-    if (!plan) {
-      this.errorMessage.set('Create a meal plan before generating a grocery list.');
-      return;
-    }
-    this.syncMealIngredients(plan, this.plannedMeals());
   }
 
   togglePantryItem(item: PantryItem): void {
@@ -810,76 +797,9 @@ export class DashboardPage implements OnInit {
           this.editingMealIndex.set(null);
           this.mealForm.reset();
           this.errorMessage.set('');
-          this.syncMealIngredients(updated, meals);
         },
         error: (error: HttpErrorResponse) => this.handleSaveError(error),
       });
-  }
-
-  private syncMealIngredients(plan: MealPlan, meals: PlannedMeal[]): void {
-    this.dataService.listGroceryItems().subscribe({
-      next: (items) => {
-        this.groceryItems.set(items);
-        this.persistMealIngredients(plan, meals, items);
-      },
-      error: (error: HttpErrorResponse) => this.handleSaveError(error),
-    });
-  }
-
-  private persistMealIngredients(plan: MealPlan, meals: PlannedMeal[], allItems: GroceryItem[]): void {
-    const ingredients = new Map<string, { quantity: number; estimatedPrice: number }>();
-    for (const meal of meals) {
-      for (const rawIngredient of meal.ingredients.split(',')) {
-        const [rawName, rawPrice] = rawIngredient.split(':');
-        const name = rawName?.trim();
-        if (name) {
-          const key = name.toLowerCase();
-          const item = ingredients.get(key) ?? { quantity: 0, estimatedPrice: 0 };
-          item.quantity += 1;
-          item.estimatedPrice += Number(rawPrice?.trim() || 0);
-          ingredients.set(key, item);
-        }
-      }
-    }
-    const existing = allItems.filter((item) => item.meal_plan_id === plan.id);
-    const existingByName = new Map(existing.map((item) => [item.name.toLowerCase(), item]));
-    const requests = [...ingredients.entries()]
-      .map(([name, item]) => {
-        const existingItem = existingByName.get(name);
-        const payload = {
-          meal_plan_id: plan.id,
-          name: existingItem?.name ?? name.replace(/\b\w/g, (letter) => letter.toUpperCase()),
-          quantity: item.quantity,
-          unit: 'serving',
-          estimated_price: item.estimatedPrice,
-          category: existingItem?.category ?? 'Meal plan',
-        };
-        if (existingItem) {
-          if (
-            Number(existingItem.quantity) === payload.quantity &&
-            Number(existingItem.estimated_price) === payload.estimated_price
-          ) {
-            return null;
-          }
-          return this.dataService.updateGroceryItem(existingItem.id, payload);
-        }
-        return this.dataService.createGroceryItem(payload);
-      })
-      .filter((request): request is Observable<GroceryItem> => request !== null);
-    if (!requests.length) {
-      this.loadMealPlans();
-      this.loadGroceries();
-      this.selectSection('meal-plans');
-      return;
-    }
-    forkJoin(requests).subscribe({
-      next: () => {
-        this.loadMealPlans();
-        this.loadGroceries();
-        this.selectSection('meal-plans');
-      },
-      error: (error: HttpErrorResponse) => this.handleSaveError(error),
-    });
   }
 
   private isPlannedMeal(value: unknown): value is PlannedMeal {

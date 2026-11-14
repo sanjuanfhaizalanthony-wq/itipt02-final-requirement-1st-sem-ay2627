@@ -92,7 +92,7 @@ test('opens meal plan, grocery and pantry from their direct URLs', async ({ page
 
   const sections = [
     { path: '/mealplan', canonicalPath: '/dashboard/mealplan', heading: 'Weekly Meal Planner' },
-    { path: '/grocery', canonicalPath: '/dashboard/grocery', heading: 'Automated Grocery List' },
+    { path: '/grocery', canonicalPath: '/dashboard/grocery', heading: 'Grocery List' },
     { path: '/pantry', canonicalPath: '/dashboard/pantry', heading: 'Pantry & Expiration Tracker' },
   ];
 
