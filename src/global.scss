@@ -39,7 +39,7 @@
 app-dashboard{--dashboard-bg:#050919;--dashboard-surface:#1b2638;--dashboard-raised:#101a2b;--dashboard-line:#27354a;--dashboard-muted:#99a7bb;--dashboard-text:#eef3fa;--dashboard-green:#18c979;display:block;min-height:100%;color:var(--dashboard-text);font-family:Arial,Helvetica,sans-serif}
 app-dashboard ion-content{--background:var(--dashboard-bg)}
 app-dashboard .dashboard-shell{box-sizing:border-box;width:min(100%,560px);min-height:100%;margin:auto;padding:max(14px,env(safe-area-inset-top)) 12px calc(88px + env(safe-area-inset-bottom))}
-app-dashboard .topbar,app-dashboard .brand,app-dashboard .topbar-actions,app-dashboard .budget-heading,app-dashboard .budget-main,app-dashboard .planned-line,app-dashboard .budget-footer,app-dashboard .fund-details,app-dashboard .page-title-row,app-dashboard .card-heading,app-dashboard .schedule-row,app-dashboard .day-heading,app-dashboard .grocery-row,app-dashboard .pantry-row,app-dashboard .simple-row,app-dashboard .plan-controls,app-dashboard .row-actions,app-dashboard .form-actions{display:flex;align-items:center}
+app-dashboard .topbar,app-dashboard .brand,app-dashboard .topbar-actions,app-dashboard .budget-heading,app-dashboard .budget-main,app-dashboard .planned-line,app-dashboard .budget-footer,app-dashboard .budget-details,app-dashboard .page-title-row,app-dashboard .card-heading,app-dashboard .schedule-row,app-dashboard .day-heading,app-dashboard .grocery-row,app-dashboard .pantry-row,app-dashboard .simple-row,app-dashboard .plan-controls,app-dashboard .row-actions,app-dashboard .form-actions{display:flex;align-items:center}
 app-dashboard .topbar{justify-content:space-between;gap:8px;min-height:42px;margin-bottom:12px}
 app-dashboard .brand{gap:7px;min-width:0}
 app-dashboard .brand-icon{display:grid;place-items:center;flex:0 0 34px;width:34px;height:34px;border-radius:10px;color:#052015;background:var(--dashboard-green);font-size:20px}
@@ -67,7 +67,7 @@ app-dashboard .home-section,app-dashboard .page-section{display:grid;gap:12px}
 app-dashboard .budget-card,app-dashboard .schedule-card,app-dashboard .day-card,app-dashboard .grocery-category,app-dashboard .pantry-row,app-dashboard .simple-row,app-dashboard .info-card{border:1px solid var(--dashboard-line);border-radius:13px;background:var(--dashboard-surface)}
 app-dashboard .budget-card{padding:14px}
 app-dashboard .budget-heading,app-dashboard .budget-main,app-dashboard .planned-line,app-dashboard .budget-footer{justify-content:space-between}
-app-dashboard .budget-heading span,app-dashboard .planned-line,app-dashboard .budget-footer,app-dashboard .fund-details{color:var(--dashboard-muted);font-size:8px}
+app-dashboard .budget-heading span,app-dashboard .planned-line,app-dashboard .budget-footer,app-dashboard .budget-details{color:var(--dashboard-muted);font-size:8px}
 app-dashboard .budget-main{margin:4px 0 10px}
 app-dashboard .allowance{font-size:21px;letter-spacing:-.04em}
 app-dashboard .money-left{color:var(--dashboard-green);font-size:17px}.money-left.over-budget{color:#f06d83}
@@ -78,8 +78,8 @@ app-dashboard .progress-track{height:5px;margin-bottom:10px;overflow:hidden;bord
 app-dashboard .progress-track span{display:block;height:100%;max-width:100%;border-radius:9px;background:var(--dashboard-green)}
 app-dashboard .budget-footer{justify-content:space-between;gap:6px;padding-top:8px;border-top:1px solid var(--dashboard-line)}
 app-dashboard .budget-footer strong{margin-left:3px;color:#dce4ef;font-size:8px}
-app-dashboard .fund-details{display:flex;flex-wrap:wrap;justify-content:space-between;gap:5px;margin-top:8px}
-app-dashboard .fund-details strong{color:var(--dashboard-text)}
+app-dashboard .budget-details{justify-content:flex-end;gap:5px;margin-top:8px}
+app-dashboard .budget-details strong{color:var(--dashboard-text)}
 app-dashboard .stats-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
 app-dashboard .stats-grid button{display:grid;justify-items:center;gap:4px;min-height:70px;padding:9px 3px;border:1px solid var(--dashboard-line);border-radius:12px;color:var(--dashboard-muted);background:var(--dashboard-surface);font:inherit;font-size:8px}
 app-dashboard .stats-grid ion-icon{color:var(--dashboard-green);font-size:15px}
@@ -97,6 +97,8 @@ app-dashboard .card-heading{justify-content:space-between;gap:5px;margin-bottom:
 app-dashboard .card-heading h2{display:flex;align-items:center;gap:5px;font-size:10px}
 app-dashboard .card-heading h2 ion-icon{color:var(--dashboard-green);font-size:12px}
 app-dashboard .schedule-row{gap:6px;min-height:43px;margin-top:5px;padding:7px;border-radius:8px;background:var(--dashboard-raised)}
+app-dashboard .meal-completion{flex:0 0 14px;width:14px;height:14px;margin:0;accent-color:var(--dashboard-green);cursor:pointer}
+app-dashboard .meal-completion:disabled{cursor:wait}
 app-dashboard .meal-tag{flex:0 0 48px;padding:5px 3px;border:1px solid #29374a;border-radius:5px;color:#b8c5d5;background:#1a2636;text-align:center;text-transform:uppercase;font-size:7px}
 app-dashboard .meal-info{display:grid;flex:1;gap:3px;min-width:0}
 app-dashboard .meal-info strong{overflow:hidden;color:#e5ebf3;text-overflow:ellipsis;white-space:nowrap;font-size:9px}

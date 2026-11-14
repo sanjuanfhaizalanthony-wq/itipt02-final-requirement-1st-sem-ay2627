@@ -54,9 +54,7 @@
         </button>
       </div>
     </section>
-    }
-
-    @if (errorMessage()) {
+    } @if (errorMessage()) {
     <p class="status-message error-message" role="alert">{{ errorMessage() }}</p>
     } @if (selectedSection() === 'overview') {
     <section class="home-section">
@@ -87,18 +85,13 @@
           <span>Logged Spending: <strong>₱{{ spentThisWeek() | number: '1.0-0' }}</strong></span>
           <span>Planned Target: <strong>₱{{ plannedMealCost() | number: '1.0-0' }}</strong></span>
         </div>
-        <div class="fund-details">
-          <span>Food budget <strong>₱{{ currentProfile.food_budget || '0' }}</strong></span>
-          <span>Emergency fund <strong>{{ currentProfile.emergency_fund_percent }}%</strong></span>
-          <span>Daily meal cap <strong>₱{{ currentProfile.daily_meal_budget_cap || '0' }}</strong></span>
+        <div class="budget-details">
+          <span>Daily meal budget <strong>₱{{ currentProfile.daily_meal_budget_cap || '0' }}</strong></span>
         </div>
         @if (isBudgetFormOpen()) {
         <form class="inline-form budget-form" [formGroup]="budgetForm" (ngSubmit)="saveBudget()">
           <label
             >Weekly allowance (₱)<input type="number" min="0" step="0.01" formControlName="weeklyAllowance"
-          /></label>
-          <label
-            >Emergency fund (%)<input type="number" min="0" max="100" step="1" formControlName="emergencyPercent"
           /></label>
           <fieldset>
             <legend>Dorm equipment</legend>
@@ -182,6 +175,14 @@
         </div>
         @for (meal of mealsForDay(currentDay()); track $index) {
         <div class="schedule-row">
+          <input
+            class="meal-completion"
+            type="checkbox"
+            [checked]="meal.isCompleted ?? false"
+            [disabled]="isSavingMealCompletion()"
+            [attr.aria-label]="'Mark ' + meal.category + ' as completed'"
+            (change)="setMealCompleted(meal, $event)"
+          />
           <span class="meal-tag">{{ meal.category }}</span>
           <div class="meal-info">
             <strong>{{ meal.name }}</strong><small>{{ meal.minutes }} mins · Budget Pick</small>

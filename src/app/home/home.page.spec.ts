@@ -1,13 +1,15 @@
 import { provideHttpClient } from '@angular/common/http';
+
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
-import { ActivatedRoute } from '@angular/router';
 import type { ComponentFixture } from '@angular/core/testing';
 import { TestBed } from '@angular/core/testing';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 
 import { environment } from '../../environments/environment';
 
 import { HomePage } from './home.page';
+import { expect } from 'vitest';
+import { afterEach, beforeEach, describe, it } from 'node:test';
 
 describe('HomePage', () => {
   let component: HomePage;
@@ -15,10 +17,12 @@ describe('HomePage', () => {
   let httpMock: HttpTestingController;
   const navigationUrls: string[] = [];
   let routeMode: string | null;
+  let routeReturnUrl: string | null;
 
   beforeEach(async () => {
     navigationUrls.length = 0;
     routeMode = null;
+    routeReturnUrl = null;
     await TestBed.configureTestingModule({
       providers: [
         provideHttpClient(),
@@ -37,7 +41,11 @@ describe('HomePage', () => {
           useValue: {
             snapshot: {
               queryParamMap: {
-                get: (name: string) => (name === 'mode' ? routeMode : null),
+                get: (name: string) => {
+                  if (name === 'mode') return routeMode;
+                  if (name === 'returnUrl') return routeReturnUrl;
+                  return null;
+                },
               },
             },
           },
@@ -104,6 +112,7 @@ describe('HomePage', () => {
 
   it('should sign in and open the dashboard', () => {
     component.showSignInNotice();
+    routeReturnUrl = '/dashboard/mealplan';
     component.loginForm.setValue({ email: 'alex@example.com', password: 'secure-pass-123' });
 
     component.createAccount();
@@ -123,6 +132,27 @@ describe('HomePage', () => {
     });
 
     expect(sessionStorage.getItem('nutridorm_access_token')).toBe('login-token');
+    expect(navigationUrls).toEqual(['/dashboard/mealplan']);
+  });
+
+  it('should ignore unsafe login return URLs', () => {
+    component.showSignInNotice();
+    routeReturnUrl = 'https://example.com';
+    component.loginForm.setValue({ email: 'alex@example.com', password: 'secure-pass-123' });
+    component.createAccount();
+
+    const request = httpMock.expectOne(`${environment.apiBaseUrl}/api/auth/login`);
+    request.flush({
+      access_token: 'login-token',
+      token_type: 'bearer',
+      user: {
+        id: 1,
+        full_name: 'Alex Santos',
+        dorm_name: 'San Leonardo Dorm',
+        email: 'alex@example.com',
+      },
+    });
+
     expect(navigationUrls).toEqual(['/dashboard']);
   });
 

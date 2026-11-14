@@ -1,8 +1,9 @@
 import { DecimalPipe, UpperCasePipe } from '@angular/common';
 import type { HttpErrorResponse } from '@angular/common/http';
-import { Component, inject, signal, type OnInit, type WritableSignal } from '@angular/core';
+import { Component, DestroyRef, inject, signal, type OnInit, type WritableSignal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { IonContent, IonIcon } from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import {
@@ -45,9 +46,43 @@ interface PlannedMeal {
   minutes: number;
   cost: number;
   ingredients: string;
+  isCompleted?: boolean;
 }
 
 const WEEKDAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+const SECTION_PATHS: Record<DashboardSection, string> = {
+  overview: 'dashboard',
+  expenses: 'dashboard/expenses',
+  pantry: 'dashboard/pantry',
+  'meal-plans': 'dashboard/mealplan',
+  groceries: 'dashboard/grocery',
+  nutrition: 'dashboard/nutrition',
+};
+
+function dashboardSectionFromPath(path: string | null): DashboardSection | null {
+  switch (path) {
+    case 'dashboard':
+    case null:
+      return 'overview';
+    case 'overview':
+      return 'overview';
+    case 'expenses':
+      return 'expenses';
+    case 'pantry':
+      return 'pantry';
+    case 'mealplan':
+    case 'meal-plan':
+    case 'meal-plans':
+      return 'meal-plans';
+    case 'grocery':
+    case 'groceries':
+      return 'groceries';
+    case 'nutrition':
+      return 'nutrition';
+    default:
+      return null;
+  }
+}
 
 @Component({
   selector: 'app-dashboard',
@@ -58,6 +93,8 @@ export class DashboardPage implements OnInit {
   private readonly authService = inject(AuthService);
   private readonly dataService = inject(NutriDormDataService);
   private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
+  private readonly destroyRef = inject(DestroyRef);
 
   readonly user = signal<AuthUser | null>(null);
   readonly profile = signal<UserProfile | null>(null);
@@ -71,6 +108,7 @@ export class DashboardPage implements OnInit {
   readonly errorMessage = signal('');
   readonly isLoading = signal(true);
   readonly isSaving = signal(false);
+  readonly isSavingMealCompletion = signal(false);
   readonly isBudgetFormOpen = signal(false);
   readonly isAccountPanelOpen = signal(false);
   readonly isPantryFormOpen = signal(false);
@@ -91,7 +129,6 @@ export class DashboardPage implements OnInit {
 
   readonly budgetForm = new FormGroup({
     weeklyAllowance: new FormControl(0, { nonNullable: true, validators: [Validators.required, Validators.min(0.01)] }),
-    emergencyPercent: new FormControl(10, { nonNullable: true, validators: [Validators.min(0), Validators.max(100)] }),
   });
   readonly expenseForm = new FormGroup({
     amount: new FormControl(0, { nonNullable: true, validators: [Validators.required, Validators.min(0.01)] }),
@@ -160,6 +197,12 @@ export class DashboardPage implements OnInit {
   }
 
   ngOnInit(): void {
+    this.route.paramMap.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((params) => {
+      const section = dashboardSectionFromPath(params.get('section'));
+      if (section) this.selectedSection.set(section);
+      else void this.router.navigateByUrl('/dashboard');
+    });
+
     this.authService.getCurrentUser().subscribe({
       next: (user) => {
         this.user.set(user);
@@ -191,6 +234,8 @@ export class DashboardPage implements OnInit {
   selectSection(section: DashboardSection): void {
     this.selectedSection.set(section);
     this.errorMessage.set('');
+    const url = `/${SECTION_PATHS[section]}`;
+    if (this.router.url !== url) void this.router.navigateByUrl(url);
   }
 
   toggleBudgetForm(): void {
@@ -266,6 +311,37 @@ export class DashboardPage implements OnInit {
 
   mealsForDay(day: string): PlannedMeal[] {
     return this.plannedMeals().filter((meal) => meal.day === day);
+  }
+
+  setMealCompleted(meal: PlannedMeal, event: Event): void {
+    const target = event.target;
+    const plan = this.currentMealPlan();
+    if (!(target instanceof HTMLInputElement) || !plan || this.isSavingMealCompletion()) return;
+
+    const index = this.plannedMeals().indexOf(meal);
+    if (index < 0 || meal.isCompleted === target.checked) return;
+
+    const meals = this.plannedMeals().map((item, mealIndex) =>
+      mealIndex === index ? { ...item, isCompleted: target.checked } : item,
+    );
+    this.isSavingMealCompletion.set(true);
+    this.dataService
+      .updateMealPlan(plan.id, {
+        title: plan.title,
+        week_start: plan.week_start,
+        plan_data: { ...plan.plan_data, meals },
+      })
+      .subscribe({
+        next: (updated) => {
+          this.mealPlans.update((plans) => plans.map((item) => (item.id === updated.id ? updated : item)));
+          this.errorMessage.set('');
+          this.isSavingMealCompletion.set(false);
+        },
+        error: (error: HttpErrorResponse) => {
+          this.handleSaveError(error);
+          this.isSavingMealCompletion.set(false);
+        },
+      });
   }
 
   dayTotal(day: string): number {
@@ -357,7 +433,7 @@ export class DashboardPage implements OnInit {
     const meals = [...this.plannedMeals()];
     const editIndex = this.editingMealIndex();
     if (editIndex === null) meals.push(entry);
-    else meals[editIndex] = entry;
+    else meals[editIndex] = { ...entry, isCompleted: meals[editIndex]?.isCompleted };
     this.persistMealEntries(plan, meals);
   }
 
@@ -365,7 +441,14 @@ export class DashboardPage implements OnInit {
     const item = this.plannedMeals()[index];
     if (!item) return;
     this.editingMealIndex.set(index);
-    this.mealForm.setValue(item);
+    this.mealForm.setValue({
+      day: item.day,
+      category: item.category,
+      name: item.name,
+      minutes: item.minutes,
+      cost: item.cost,
+      ingredients: item.ingredients,
+    });
     this.selectSection('meal-plans');
   }
 
@@ -422,16 +505,15 @@ export class DashboardPage implements OnInit {
   saveBudget(): void {
     if (this.budgetForm.invalid) {
       this.budgetForm.markAllAsTouched();
-      this.errorMessage.set('Please enter a weekly allowance greater than ₱0 and a valid emergency fund percentage.');
+      this.errorMessage.set('Please enter a weekly allowance greater than ₱0.');
       return;
     }
 
     this.isSaving.set(true);
-    const { weeklyAllowance, emergencyPercent } = this.budgetForm.getRawValue();
+    const { weeklyAllowance } = this.budgetForm.getRawValue();
     this.authService
       .updateProfile({
         weekly_allowance: Number(weeklyAllowance),
-        emergency_fund_percent: Number(emergencyPercent),
         equipment: this.selectedEquipment(),
       })
       .subscribe({
@@ -651,10 +733,7 @@ export class DashboardPage implements OnInit {
         this.profile.set(profile);
         this.selectedEquipment.set(profile.equipment as Equipment[]);
         this.isBudgetFormOpen.set(profile.weekly_allowance === null);
-        this.budgetForm.setValue({
-          weeklyAllowance: Number(profile.weekly_allowance ?? 0),
-          emergencyPercent: Number(profile.emergency_fund_percent),
-        });
+        this.budgetForm.setValue({ weeklyAllowance: Number(profile.weekly_allowance ?? 0) });
         this.isLoading.set(false);
       },
       error: (error: HttpErrorResponse) => this.handleLoadError(error),
@@ -812,7 +891,8 @@ export class DashboardPage implements OnInit {
       typeof meal.name === 'string' &&
       typeof meal.minutes === 'number' &&
       typeof meal.cost === 'number' &&
-      typeof meal.ingredients === 'string'
+      typeof meal.ingredients === 'string' &&
+      (meal.isCompleted === undefined || typeof meal.isCompleted === 'boolean')
     );
   }
 
@@ -854,7 +934,8 @@ export class DashboardPage implements OnInit {
 
     if (error.status === 401) {
       this.authService.signOut();
-      void this.router.navigateByUrl('/home');
+      const returnUrl = encodeURIComponent(this.router.url);
+      void this.router.navigateByUrl(`/home?mode=login&returnUrl=${returnUrl}`, { replaceUrl: true });
       return;
     }
 

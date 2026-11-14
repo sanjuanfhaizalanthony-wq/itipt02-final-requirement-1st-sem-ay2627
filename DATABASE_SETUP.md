@@ -20,7 +20,7 @@ Open `http://127.0.0.1:8000/` for the API welcome page and `http://127.0.0.1:800
 ## Data stored
 
 - `users`: name, dorm, unique email, salted password hash, and creation time.
-- `user_profiles`: weekly allowance, emergency-fund percentage, and dorm equipment.
+- `user_profiles`: weekly allowance and dorm equipment. The legacy emergency-fund percentage column remains stored for compatibility with existing user data, but the app no longer displays or applies it to the budget.
 - `expenses`: meal/spending amounts, category, note, and date.
 - `pantry_items`: ingredient quantity, unit, category, expiry, and consumed status.
 - `meal_plans`: week, title, and the selected meal-plan data.

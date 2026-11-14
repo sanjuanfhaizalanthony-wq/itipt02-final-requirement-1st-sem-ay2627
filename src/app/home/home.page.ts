@@ -97,9 +97,7 @@ export class HomePage {
   }
 
   showError(controlName: keyof typeof this.registerForm.controls): boolean {
-    const control = this.isSignInMode()
-      ? this.loginForm.get(controlName)
-      : this.registerForm.controls[controlName];
+    const control = this.isSignInMode() ? this.loginForm.get(controlName) : this.registerForm.controls[controlName];
     return !!control && control.invalid && (control.touched || this.submitted);
   }
 
@@ -119,7 +117,8 @@ export class HomePage {
       this.authService.login(email, password).subscribe({
         next: () => {
           this.isSubmitting.set(false);
-          void this.router.navigateByUrl('/dashboard');
+          const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl');
+          void this.router.navigateByUrl(this.getSafePostLoginUrl(returnUrl));
         },
         error: (error: HttpErrorResponse) => {
           this.formMessageType.set('error');
@@ -180,5 +179,18 @@ export class HomePage {
 
     const detail = error.error?.detail;
     return typeof detail === 'string' ? detail : 'Could not create your account. Check your details and try again.';
+  }
+
+  private getSafePostLoginUrl(returnUrl: string | null): string {
+    const allowedDashboardUrls = new Set([
+      '/dashboard',
+      '/dashboard/overview',
+      '/dashboard/mealplan',
+      '/dashboard/grocery',
+      '/dashboard/pantry',
+      '/dashboard/expenses',
+      '/dashboard/nutrition',
+    ]);
+    return returnUrl && allowedDashboardUrls.has(returnUrl) ? returnUrl : '/dashboard';
   }
 }

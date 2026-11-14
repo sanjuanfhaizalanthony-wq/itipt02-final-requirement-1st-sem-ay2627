@@ -27,7 +27,6 @@ export interface AuthResponse {
 
 export interface UserProfile {
   weekly_allowance: string | null;
-  emergency_fund_percent: string;
   equipment: string[];
   food_budget: string | null;
   daily_meal_budget_cap?: string | null;
@@ -58,11 +57,7 @@ export class AuthService {
     return this.http.get<UserProfile>(`${this.apiUrl}/api/profile`);
   }
 
-  updateProfile(payload: {
-    weekly_allowance: number | null;
-    emergency_fund_percent: number;
-    equipment: string[];
-  }): Observable<UserProfile> {
+  updateProfile(payload: { weekly_allowance: number | null; equipment: string[] }): Observable<UserProfile> {
     return this.http.put<UserProfile>(`${this.apiUrl}/api/profile`, payload);
   }
 
