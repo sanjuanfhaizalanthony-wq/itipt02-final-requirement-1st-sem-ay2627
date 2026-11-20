@@ -85,14 +85,11 @@ app-dashboard .stats-grid button,app-dashboard .stats-grid .stat-card{display:gr
 app-dashboard .stats-grid ion-icon{color:var(--dashboard-green);font-size:15px}
 app-dashboard .stats-grid strong{color:var(--dashboard-text);font-size:12px}.stats-grid strong.warning{color:#f06d83}
 app-dashboard .section-label{margin:1px 0 -7px;color:var(--dashboard-muted);font-size:8px;font-weight:750;letter-spacing:.08em}
-app-dashboard .quick-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-app-dashboard .quick-actions:not(.secondary-actions)>:only-child{grid-column:1/-1}
 app-dashboard .primary-button,app-dashboard .secondary-button{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:36px;padding:8px 10px;border:0;border-radius:10px;font:inherit;font-size:9px;font-weight:750}
 app-dashboard .primary-button{color:#03150d;background:var(--dashboard-green)}
 app-dashboard .primary-button:disabled{opacity:.55}
 app-dashboard .secondary-button{border:1px solid var(--dashboard-line);color:#e0e7f0;background:#29364a}
-app-dashboard .quick-actions ion-icon,app-dashboard .primary-button ion-icon,app-dashboard .secondary-button ion-icon{font-size:13px}
-app-dashboard .secondary-actions .secondary-button{min-height:31px;color:#bdc9d8;background:var(--dashboard-raised)}
+app-dashboard .primary-button ion-icon,app-dashboard .secondary-button ion-icon{font-size:13px}
 app-dashboard .schedule-card{padding:12px 10px}
 app-dashboard .card-heading{justify-content:space-between;gap:5px;margin-bottom:9px}
 app-dashboard .card-heading h2{display:flex;align-items:center;gap:5px;font-size:10px}

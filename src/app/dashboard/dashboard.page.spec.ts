@@ -1,6 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { Router } from '@angular/router';
 import { of, throwError } from 'rxjs';
+import { afterEach, describe, expect, it } from 'vitest';
 
 import { AuthService } from '../core/auth.service';
 import { NutriDormDataService } from '../core/nutri-dorm-data.service';
@@ -72,8 +73,8 @@ describe('DashboardPage', () => {
     expect(fixture.componentInstance.isLoading()).toBe(false);
     expect(fixture.nativeElement.textContent).toContain('San Leonardo Dorm');
     expect(fixture.nativeElement.textContent).toContain('Meal Plan');
-    expect(fixture.nativeElement.textContent).toContain('Auto-Fill Budget Plan');
-    expect(fixture.nativeElement.querySelectorAll('.quick-actions:not(.secondary-actions) button')).toHaveLength(1);
+    expect(fixture.nativeElement.textContent).not.toContain('QUICK ACTIONS');
+    expect(fixture.nativeElement.querySelector('.quick-actions')).toBeNull();
     expect(fixture.nativeElement.querySelector('.stats-grid .stat-card')).not.toBeNull();
     const pantryBadge = fixture.nativeElement.querySelector('.alert-badge') as HTMLElement;
     expect(pantryBadge.textContent?.trim()).toBe('0');
@@ -120,10 +121,10 @@ describe('DashboardPage', () => {
     const accountActions = fixture.nativeElement.querySelectorAll('.account-actions button') as NodeListOf<HTMLButtonElement>;
     accountActions[0].click();
     expect(sessionStorage.getItem('nutridorm_access_token')).toBeNull();
-    expect(navigationUrls).toEqual(['/dashboard/pantry', '/home?mode=login']);
+    expect(navigationUrls).toEqual(['/home?mode=login']);
     accountActions[1].click();
     expect(signOutCount).toBe(2);
-    expect(navigationUrls).toEqual(['/dashboard/pantry', '/home?mode=login', '/home']);
+    expect(navigationUrls).toEqual(['/home?mode=login', '/home']);
 
     fixture.componentInstance.selectSection('groceries');
     fixture.detectChanges();
