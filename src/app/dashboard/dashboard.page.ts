@@ -202,13 +202,6 @@ export class DashboardPage implements OnInit {
     if (this.isPantryFormOpen()) this.editingPantryId.set(null);
   }
 
-  openPantryForm(): void {
-    this.selectSection('pantry');
-    this.editingPantryId.set(null);
-    this.pantryForm.reset();
-    this.isPantryFormOpen.set(true);
-  }
-
   toggleGroceryForm(): void {
     this.isGroceryFormOpen.update((open) => !open);
     if (this.isGroceryFormOpen()) this.editingGroceryId.set(null);

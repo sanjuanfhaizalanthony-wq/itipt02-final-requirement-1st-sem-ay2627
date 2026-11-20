@@ -151,19 +151,16 @@
           <ion-icon name="basket-outline"></ion-icon><span>Grocery Items</span
           ><strong>{{ groceryItems().length }}</strong>
         </button>
-        <button type="button" (click)="selectSection('pantry')">
+        <div class="stat-card">
           <ion-icon name="cube-outline"></ion-icon><span>Expiring Soon</span
           ><strong class="warning">{{ pantryItems().filter(isExpiringSoon).length }}</strong>
-        </button>
+        </div>
       </div>
 
       <p class="section-label">QUICK ACTIONS</p>
       <div class="quick-actions">
         <button class="primary-button" type="button" (click)="createBudgetPlan()">
           <ion-icon name="sparkles-outline"></ion-icon> Auto-Fill Budget Plan
-        </button>
-        <button class="secondary-button" type="button" (click)="openPantryForm()">
-          <ion-icon name="add-outline"></ion-icon> Add Pantry Item
         </button>
       </div>
       <div class="quick-actions secondary-actions">

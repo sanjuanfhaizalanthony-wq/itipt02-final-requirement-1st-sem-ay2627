@@ -81,11 +81,12 @@ app-dashboard .budget-footer strong{margin-left:3px;color:#dce4ef;font-size:8px}
 app-dashboard .fund-details{display:flex;flex-wrap:wrap;justify-content:space-between;gap:5px;margin-top:8px}
 app-dashboard .fund-details strong{color:var(--dashboard-text)}
 app-dashboard .stats-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
-app-dashboard .stats-grid button{display:grid;justify-items:center;gap:4px;min-height:70px;padding:9px 3px;border:1px solid var(--dashboard-line);border-radius:12px;color:var(--dashboard-muted);background:var(--dashboard-surface);font:inherit;font-size:8px}
+app-dashboard .stats-grid button,app-dashboard .stats-grid .stat-card{display:grid;justify-items:center;gap:4px;min-height:70px;padding:9px 3px;border:1px solid var(--dashboard-line);border-radius:12px;color:var(--dashboard-muted);background:var(--dashboard-surface);font:inherit;font-size:8px}
 app-dashboard .stats-grid ion-icon{color:var(--dashboard-green);font-size:15px}
 app-dashboard .stats-grid strong{color:var(--dashboard-text);font-size:12px}.stats-grid strong.warning{color:#f06d83}
 app-dashboard .section-label{margin:1px 0 -7px;color:var(--dashboard-muted);font-size:8px;font-weight:750;letter-spacing:.08em}
 app-dashboard .quick-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+app-dashboard .quick-actions:not(.secondary-actions)>:only-child{grid-column:1/-1}
 app-dashboard .primary-button,app-dashboard .secondary-button{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:36px;padding:8px 10px;border:0;border-radius:10px;font:inherit;font-size:9px;font-weight:750}
 app-dashboard .primary-button{color:#03150d;background:var(--dashboard-green)}
 app-dashboard .primary-button:disabled{opacity:.55}
