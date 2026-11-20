@@ -382,6 +382,63 @@ export class DashboardPage implements OnInit {
     return `${remaining} day${remaining === 1 ? '' : 's'} left`;
   }
 
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+  createBudgetPlan(): void {
+    if (this.plannedMeals().length) {
+      this.errorMessage.set('This plan already contains meals. Create a new weekly plan before auto-filling it.');
+      return;
+    }
+    const meals: PlannedMeal[] = WEEKDAYS.flatMap((day) => [
+      {
+        day,
+        category: 'breakfast',
+        name: 'Egg & Garlic Rice Bowl',
+        minutes: 10,
+        cost: 35,
+        ingredients: 'Eggs:15, Rice:15, Garlic:5',
+      },
+      {
+        day,
+        category: 'lunch',
+        name: 'Canned Tuna & Garlic Pasta',
+        minutes: 15,
+        cost: 65,
+        ingredients: 'Canned Tuna:45, Pasta:15, Garlic:5',
+      },
+      {
+        day,
+        category: 'dinner',
+        name: 'Healthy Monggo Soup',
+        minutes: 25,
+        cost: 45,
+        ingredients: 'Mung Beans:25, Malunggay:10, Onion:10',
+      },
+    ]);
+    const existing = this.currentMealPlan();
+    const payload = {
+      title: 'Weekly Budget Meal Plan',
+      week_start: this.mealPlanForm.controls.weekStart.value,
+      plan_data: { meals },
+    };
+    const request = existing
+      ? this.dataService.updateMealPlan(existing.id, payload)
+      : this.dataService.createMealPlan(payload);
+    request.subscribe({
+      next: (plan) => {
+        this.selectedMealPlanId.set(plan.id);
+        this.mealPlans.update((plans) =>
+          existing ? plans.map((item) => (item.id === plan.id ? plan : item)) : [plan, ...plans],
+        );
+      },
+      error: (error: HttpErrorResponse) => this.handleSaveError(error),
+    });
+  }
+
+=======
+>>>>>>> 26c03ee (Add Cedrick contribution)
+>>>>>>> a34e4ae (Update Cedrick dashboard changes)
   saveMealEntry(): void {
     const plan = this.currentMealPlan();
     if (!plan) {

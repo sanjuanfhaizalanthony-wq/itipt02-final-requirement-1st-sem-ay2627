@@ -1,5 +1,5 @@
 import { TestBed } from '@angular/core/testing';
-import { ActivatedRoute, convertToParamMap, Router } from '@angular/router';
+import { Router } from '@angular/router';
 import { of, throwError } from 'rxjs';
 import { afterEach, describe, expect, it } from 'vitest';
 
@@ -19,7 +19,6 @@ describe('DashboardPage', () => {
     await TestBed.configureTestingModule({
       imports: [DashboardPage],
       providers: [
-        { provide: ActivatedRoute, useValue: { paramMap: of(convertToParamMap({})) } },
         {
           provide: AuthService,
           useValue: {
@@ -57,7 +56,6 @@ describe('DashboardPage', () => {
         {
           provide: Router,
           useValue: {
-            url: '/dashboard',
             navigateByUrl: (url: string) => {
               navigationUrls.push(url);
               return Promise.resolve(true);
@@ -131,7 +129,11 @@ describe('DashboardPage', () => {
     fixture.componentInstance.selectSection('groceries');
     fixture.detectChanges();
 
+<<<<<<< HEAD
     expect(fixture.nativeElement.textContent).toContain('Grocery List');
+=======
+    expect(fixture.nativeElement.textContent).toContain('Automated Grocery List');
+>>>>>>> a34e4ae (Update Cedrick dashboard changes)
   });
 
   it('should show meal history by week and save meals marked as eaten', async () => {
@@ -163,7 +165,10 @@ describe('DashboardPage', () => {
     await TestBed.configureTestingModule({
       imports: [DashboardPage],
       providers: [
+<<<<<<< HEAD
         { provide: ActivatedRoute, useValue: { paramMap: of(convertToParamMap({})) } },
+=======
+>>>>>>> a34e4ae (Update Cedrick dashboard changes)
         {
           provide: AuthService,
           useValue: {
@@ -221,12 +226,20 @@ describe('DashboardPage', () => {
     fixture.componentInstance.selectSection('meal-plans');
     fixture.detectChanges();
     expect(fixture.nativeElement.textContent).not.toContain('Auto-Optimize');
+<<<<<<< HEAD
     const eatenCheckbox = fixture.nativeElement.querySelector('.day-card .meal-completion') as HTMLInputElement;
+=======
+    const eatenCheckbox = fixture.nativeElement.querySelector('.day-card .eaten-check input') as HTMLInputElement;
+>>>>>>> a34e4ae (Update Cedrick dashboard changes)
     eatenCheckbox.checked = true;
     eatenCheckbox.dispatchEvent(new Event('change', { bubbles: true }));
     fixture.detectChanges();
     expect(savedPlanData).toEqual({
+<<<<<<< HEAD
       meals: [{ ...meal, name: 'Banana', day: 'Tuesday', isCompleted: true }],
+=======
+      meals: [{ ...meal, name: 'Banana', day: 'Tuesday', isEaten: true }],
+>>>>>>> a34e4ae (Update Cedrick dashboard changes)
     });
 
     fixture.componentInstance.selectSection('overview');
@@ -244,7 +257,6 @@ describe('DashboardPage', () => {
     await TestBed.configureTestingModule({
       imports: [DashboardPage],
       providers: [
-        { provide: ActivatedRoute, useValue: { paramMap: of(convertToParamMap({})) } },
         {
           provide: AuthService,
           useValue: {
@@ -256,7 +268,6 @@ describe('DashboardPage', () => {
         {
           provide: Router,
           useValue: {
-            url: '/dashboard',
             navigateByUrl: (url: string) => {
               navigationUrls.push(url);
               return Promise.resolve(true);
@@ -270,15 +281,18 @@ describe('DashboardPage', () => {
     fixture.detectChanges();
 
     expect(sessionStorage.getItem('nutridorm_access_token')).toBeNull();
-    expect(navigationUrls).toEqual(['/home?mode=login&returnUrl=%2Fdashboard']);
+    expect(navigationUrls).toEqual(['/home']);
   });
 
+<<<<<<< HEAD
   it('should save the allowance and selected dorm equipment', async () => {
+=======
+  it('should save the allowance, emergency percentage and selected dorm equipment', async () => {
+>>>>>>> a34e4ae (Update Cedrick dashboard changes)
     let savedPayload: unknown;
     await TestBed.configureTestingModule({
       imports: [DashboardPage],
       providers: [
-        { provide: ActivatedRoute, useValue: { paramMap: of(convertToParamMap({})) } },
         {
           provide: AuthService,
           useValue: {
@@ -327,12 +341,13 @@ describe('DashboardPage', () => {
     fixture.detectChanges();
 
     const component = fixture.componentInstance;
-    component.budgetForm.setValue({ weeklyAllowance: 1500 });
+    component.budgetForm.setValue({ weeklyAllowance: 1500, emergencyPercent: 15 });
     component.toggleEquipment('rice_cooker');
     component.saveBudget();
 
     expect(savedPayload).toEqual({
       weekly_allowance: 1500,
+      emergency_fund_percent: 15,
       equipment: ['rice_cooker'],
     });
     expect(component.profile()?.food_budget).toBe('1275.00');
