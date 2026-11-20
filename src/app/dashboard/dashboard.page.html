@@ -144,28 +144,10 @@
           <ion-icon name="basket-outline"></ion-icon><span>Grocery Items</span
           ><strong>{{ groceryItems().length }}</strong>
         </button>
-        <button type="button" (click)="selectSection('pantry')">
+        <div class="stat-card">
           <ion-icon name="cube-outline"></ion-icon><span>Expiring Soon</span
           ><strong class="warning">{{ pantryItems().filter(isExpiringSoon).length }}</strong>
-        </button>
-      </div>
-
-      <p class="section-label">QUICK ACTIONS</p>
-      <div class="quick-actions">
-        <button class="primary-button" type="button" (click)="createBudgetPlan()">
-          <ion-icon name="sparkles-outline"></ion-icon> Auto-Fill Budget Plan
-        </button>
-        <button class="secondary-button" type="button" (click)="openPantryForm()">
-          <ion-icon name="add-outline"></ion-icon> Add Pantry Item
-        </button>
-      </div>
-      <div class="quick-actions secondary-actions">
-        <button class="secondary-button" type="button" (click)="selectSection('expenses')">
-          <ion-icon name="receipt-outline"></ion-icon> Log Spending
-        </button>
-        <button class="secondary-button" type="button" (click)="selectSection('nutrition')">
-          <ion-icon name="nutrition-outline"></ion-icon> Nutrition Log
-        </button>
+        </div>
       </div>
 
       <article class="schedule-card">
@@ -191,6 +173,32 @@
         </div>
         } @empty {
         <p class="empty-state">No meals planned yet. Add meals from the Meal Plan tab to get started.</p>
+        }
+      </article>
+      <article class="history-card">
+        <div class="card-heading">
+          <h2><ion-icon name="calendar-outline"></ion-icon> Meal History</h2>
+        </div>
+        @for (plan of mealHistoryPlans(); track plan.id) {
+        <div class="history-week">
+          <button
+            type="button"
+            [attr.aria-expanded]="selectedHistoryPlanId() === plan.id"
+            (click)="toggleMealHistory(plan.id)"
+          >
+            <strong>{{ mealHistoryWeek(plan) }}</strong>
+            <span>{{ eatenMeals(plan).length }} eaten</span>
+          </button>
+          @if (selectedHistoryPlanId() === plan.id) { @for (meal of eatenMeals(plan); track $index) {
+          <div class="history-meal">
+            <span>{{ meal.day }} · {{ meal.category }}</span><strong>{{ meal.name }}</strong>
+          </div>
+          } @empty {
+          <p class="empty-state">No meals marked as eaten this week.</p>
+          } }
+        </div>
+        } @empty {
+        <p class="empty-state">No weekly meal plans yet.</p>
         }
       </article>
     </section>
@@ -295,6 +303,14 @@
         </div>
         @for (meal of mealsForDay(day); track $index) {
         <div class="schedule-row">
+          <input
+            class="meal-completion"
+            type="checkbox"
+            [checked]="meal.isCompleted ?? false"
+            [disabled]="isSavingMealCompletion()"
+            [attr.aria-label]="'Mark ' + meal.category + ' as completed'"
+            (change)="setMealCompleted(meal, $event)"
+          />
           <span class="meal-tag">{{ meal.category }}</span>
           <div class="meal-info"><strong>{{ meal.name }}</strong><small>{{ meal.minutes }} mins</small></div>
           <strong class="price">₱{{ meal.cost }}</strong>

@@ -1,15 +1,13 @@
 import { provideHttpClient } from '@angular/common/http';
-
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import type { ComponentFixture } from '@angular/core/testing';
 import { TestBed } from '@angular/core/testing';
 import { ActivatedRoute, Router } from '@angular/router';
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 
 import { environment } from '../../environments/environment';
 
 import { HomePage } from './home.page';
-import { expect } from 'vitest';
-import { afterEach, beforeEach, describe, it } from 'node:test';
 
 describe('HomePage', () => {
   let component: HomePage;

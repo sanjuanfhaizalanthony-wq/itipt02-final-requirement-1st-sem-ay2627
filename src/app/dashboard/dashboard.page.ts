@@ -8,6 +8,7 @@ import { IonContent, IonIcon } from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import {
   addOutline,
+  basketOutline,
   calendarOutline,
   checkmarkOutline,
   createOutline,
@@ -111,6 +112,7 @@ export class DashboardPage implements OnInit {
   readonly isPantryFormOpen = signal(false);
   readonly isGroceryFormOpen = signal(false);
   readonly selectedMealPlanId = signal<number | null>(null);
+  readonly selectedHistoryPlanId = signal<number | null>(null);
   readonly editingMealIndex = signal<number | null>(null);
   readonly editingExpenseId = signal<number | null>(null);
   readonly editingPantryId = signal<number | null>(null);
@@ -175,6 +177,7 @@ export class DashboardPage implements OnInit {
   constructor() {
     addIcons({
       addOutline,
+      basketOutline,
       calendarOutline,
       checkmarkOutline,
       createOutline,
@@ -242,13 +245,6 @@ export class DashboardPage implements OnInit {
     if (this.isPantryFormOpen()) this.editingPantryId.set(null);
   }
 
-  openPantryForm(): void {
-    this.selectSection('pantry');
-    this.editingPantryId.set(null);
-    this.pantryForm.reset();
-    this.isPantryFormOpen.set(true);
-  }
-
   toggleGroceryForm(): void {
     this.isGroceryFormOpen.update((open) => !open);
     if (this.isGroceryFormOpen()) this.editingGroceryId.set(null);
@@ -293,6 +289,31 @@ export class DashboardPage implements OnInit {
   currentMealPlan(): MealPlan | null {
     const plans = this.mealPlans();
     return plans.find((plan) => plan.id === this.selectedMealPlanId()) ?? plans[0] ?? null;
+  }
+
+  mealHistoryPlans(): MealPlan[] {
+    return [...this.mealPlans()].sort((first, second) => second.week_start.localeCompare(first.week_start));
+  }
+
+  mealHistoryWeek(plan: MealPlan): string {
+    const start = new Date(`${plan.week_start}T00:00:00`);
+    const end = new Date(start);
+    end.setDate(end.getDate() + 6);
+    const dateLabel = (date: Date): string => date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    return `${dateLabel(start)} - ${dateLabel(end)}, ${end.getFullYear()}`;
+  }
+
+  eatenMeals(plan: MealPlan): PlannedMeal[] {
+    const meals = plan.plan_data['meals'];
+    return Array.isArray(meals)
+      ? meals.filter(
+          (meal): meal is PlannedMeal => this.isPlannedMeal(meal) && meal.isCompleted === true,
+        )
+      : [];
+  }
+
+  toggleMealHistory(planId: number): void {
+    this.selectedHistoryPlanId.update((selectedId) => (selectedId === planId ? null : planId));
   }
 
   plannedMealCost(): number {
@@ -361,60 +382,6 @@ export class DashboardPage implements OnInit {
     return `${remaining} day${remaining === 1 ? '' : 's'} left`;
   }
 
-<<<<<<< HEAD
-  createBudgetPlan(): void {
-    if (this.plannedMeals().length) {
-      this.errorMessage.set('This plan already contains meals. Create a new weekly plan before auto-filling it.');
-      return;
-    }
-    const meals: PlannedMeal[] = WEEKDAYS.flatMap((day) => [
-      {
-        day,
-        category: 'breakfast',
-        name: 'Egg & Garlic Rice Bowl',
-        minutes: 10,
-        cost: 35,
-        ingredients: 'Eggs:15, Rice:15, Garlic:5',
-      },
-      {
-        day,
-        category: 'lunch',
-        name: 'Canned Tuna & Garlic Pasta',
-        minutes: 15,
-        cost: 65,
-        ingredients: 'Canned Tuna:45, Pasta:15, Garlic:5',
-      },
-      {
-        day,
-        category: 'dinner',
-        name: 'Healthy Monggo Soup',
-        minutes: 25,
-        cost: 45,
-        ingredients: 'Mung Beans:25, Malunggay:10, Onion:10',
-      },
-    ]);
-    const existing = this.currentMealPlan();
-    const payload = {
-      title: 'Weekly Budget Meal Plan',
-      week_start: this.mealPlanForm.controls.weekStart.value,
-      plan_data: { meals },
-    };
-    const request = existing
-      ? this.dataService.updateMealPlan(existing.id, payload)
-      : this.dataService.createMealPlan(payload);
-    request.subscribe({
-      next: (plan) => {
-        this.selectedMealPlanId.set(plan.id);
-        this.mealPlans.update((plans) =>
-          existing ? plans.map((item) => (item.id === plan.id ? plan : item)) : [plan, ...plans],
-        );
-      },
-      error: (error: HttpErrorResponse) => this.handleSaveError(error),
-    });
-  }
-
-=======
->>>>>>> 26c03ee (Add Cedrick contribution)
   saveMealEntry(): void {
     const plan = this.currentMealPlan();
     if (!plan) {
