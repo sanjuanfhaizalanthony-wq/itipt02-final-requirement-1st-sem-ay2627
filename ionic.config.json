@@ -1,0 +1,7 @@
+{
+  "name": "NutriDorm",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "angular-standalone"
+}
