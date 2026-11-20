@@ -18,7 +18,6 @@ import {
   personCircleOutline,
   receiptOutline,
   restaurantOutline,
-  sparklesOutline,
   swapHorizontalOutline,
   trashOutline,
   walletOutline,
@@ -186,7 +185,6 @@ export class DashboardPage implements OnInit {
       personCircleOutline,
       receiptOutline,
       restaurantOutline,
-      sparklesOutline,
       swapHorizontalOutline,
       trashOutline,
       walletOutline,
@@ -363,6 +361,7 @@ export class DashboardPage implements OnInit {
     return `${remaining} day${remaining === 1 ? '' : 's'} left`;
   }
 
+<<<<<<< HEAD
   createBudgetPlan(): void {
     if (this.plannedMeals().length) {
       this.errorMessage.set('This plan already contains meals. Create a new weekly plan before auto-filling it.');
@@ -414,6 +413,8 @@ export class DashboardPage implements OnInit {
     });
   }
 
+=======
+>>>>>>> 26c03ee (Add Cedrick contribution)
   saveMealEntry(): void {
     const plan = this.currentMealPlan();
     if (!plan) {

@@ -190,7 +190,7 @@
           <strong class="price">₱{{ meal.cost }}</strong>
         </div>
         } @empty {
-        <p class="empty-state">No meals planned yet. Tap Auto-Fill Budget Plan to get started.</p>
+        <p class="empty-state">No meals planned yet. Add meals from the Meal Plan tab to get started.</p>
         }
       </article>
     </section>
@@ -201,9 +201,6 @@
           <h1>Weekly Meal Planner</h1>
           <p>Target budget: ₱{{ currentProfile.food_budget || '0' }}</p>
         </div>
-        <button class="primary-button compact-button" type="button" (click)="createBudgetPlan()">
-          <ion-icon name="sparkles-outline"></ion-icon> Auto-Optimize
-        </button>
       </div>
       <div class="cost-banner">
         <span>Est. Total Meal Plan Cost:</span
