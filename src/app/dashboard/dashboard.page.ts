@@ -45,6 +45,7 @@ interface PlannedMeal {
   minutes: number;
   cost: number;
   ingredients: string;
+  isEaten?: boolean;
 }
 
 const WEEKDAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
@@ -76,6 +77,7 @@ export class DashboardPage implements OnInit {
   readonly isPantryFormOpen = signal(false);
   readonly isGroceryFormOpen = signal(false);
   readonly selectedMealPlanId = signal<number | null>(null);
+  readonly selectedHistoryPlanId = signal<number | null>(null);
   readonly editingMealIndex = signal<number | null>(null);
   readonly editingExpenseId = signal<number | null>(null);
   readonly editingPantryId = signal<number | null>(null);
@@ -246,6 +248,54 @@ export class DashboardPage implements OnInit {
   currentMealPlan(): MealPlan | null {
     const plans = this.mealPlans();
     return plans.find((plan) => plan.id === this.selectedMealPlanId()) ?? plans[0] ?? null;
+  }
+
+  mealHistoryPlans(): MealPlan[] {
+    return [...this.mealPlans()].sort((first, second) => second.week_start.localeCompare(first.week_start));
+  }
+
+  mealHistoryWeek(plan: MealPlan): string {
+    const start = new Date(`${plan.week_start}T00:00:00`);
+    const end = new Date(start);
+    end.setDate(end.getDate() + 6);
+    const dateLabel = (date: Date): string => date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    return `${dateLabel(start)} - ${dateLabel(end)}, ${end.getFullYear()}`;
+  }
+
+  eatenMeals(plan: MealPlan): PlannedMeal[] {
+    const meals = plan.plan_data['meals'];
+    return Array.isArray(meals)
+      ? meals.filter(
+          (meal): meal is PlannedMeal => this.isPlannedMeal(meal) && meal.isEaten === true,
+        )
+      : [];
+  }
+
+  toggleMealHistory(planId: number): void {
+    this.selectedHistoryPlanId.update((selectedId) => (selectedId === planId ? null : planId));
+  }
+
+  toggleMealEaten(index: number, event: Event): void {
+    const plan = this.currentMealPlan();
+    const target = event.target;
+    if (!plan || !(target instanceof HTMLInputElement)) return;
+
+    const meals = this.plannedMeals().map((meal, mealIndex) =>
+      mealIndex === index ? { ...meal, isEaten: target.checked } : meal,
+    );
+    this.dataService
+      .updateMealPlan(plan.id, {
+        title: plan.title,
+        week_start: plan.week_start,
+        plan_data: { ...plan.plan_data, meals },
+      })
+      .subscribe({
+        next: (updated) => {
+          this.mealPlans.update((plans) => plans.map((item) => (item.id === updated.id ? updated : item)));
+          this.errorMessage.set('');
+        },
+        error: (error: HttpErrorResponse) => this.handleSaveError(error),
+      });
   }
 
   plannedMealCost(): number {

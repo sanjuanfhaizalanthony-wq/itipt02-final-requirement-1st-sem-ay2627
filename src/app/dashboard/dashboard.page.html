@@ -168,10 +168,44 @@
           <div class="meal-info">
             <strong>{{ meal.name }}</strong><small>{{ meal.minutes }} mins · Budget Pick</small>
           </div>
+          <label class="eaten-check"
+            ><input
+              type="checkbox"
+              [checked]="meal.isEaten === true"
+              [attr.aria-label]="'Mark ' + meal.name + ' as eaten'"
+              (change)="toggleMealEaten(mealIndex(meal), $event)"
+            /><span>Eaten</span></label
+          >
           <strong class="price">₱{{ meal.cost }}</strong>
         </div>
         } @empty {
         <p class="empty-state">No meals planned yet. Tap Auto-Fill Budget Plan to get started.</p>
+        }
+      </article>
+      <article class="history-card">
+        <div class="card-heading">
+          <h2><ion-icon name="calendar-outline"></ion-icon> Meal History</h2>
+        </div>
+        @for (plan of mealHistoryPlans(); track plan.id) {
+        <div class="history-week">
+          <button
+            type="button"
+            [attr.aria-expanded]="selectedHistoryPlanId() === plan.id"
+            (click)="toggleMealHistory(plan.id)"
+          >
+            <strong>{{ mealHistoryWeek(plan) }}</strong>
+            <span>{{ eatenMeals(plan).length }} eaten</span>
+          </button>
+          @if (selectedHistoryPlanId() === plan.id) { @for (meal of eatenMeals(plan); track $index) {
+          <div class="history-meal">
+            <span>{{ meal.day }} · {{ meal.category }}</span><strong>{{ meal.name }}</strong>
+          </div>
+          } @empty {
+          <p class="empty-state">No meals marked as eaten this week.</p>
+          } }
+        </div>
+        } @empty {
+        <p class="empty-state">No weekly meal plans yet.</p>
         }
       </article>
     </section>
@@ -281,6 +315,14 @@
         <div class="schedule-row">
           <span class="meal-tag">{{ meal.category }}</span>
           <div class="meal-info"><strong>{{ meal.name }}</strong><small>{{ meal.minutes }} mins</small></div>
+          <label class="eaten-check"
+            ><input
+              type="checkbox"
+              [checked]="meal.isEaten === true"
+              [attr.aria-label]="'Mark ' + meal.name + ' as eaten'"
+              (change)="toggleMealEaten(mealIndex(meal), $event)"
+            /><span>Eaten</span></label
+          >
           <strong class="price">₱{{ meal.cost }}</strong>
           <button class="icon-button" type="button" (click)="editMealEntry(mealIndex(meal))" aria-label="Edit meal">
             <ion-icon name="create-outline"></ion-icon>

@@ -132,6 +132,107 @@ describe('DashboardPage', () => {
     expect(fixture.nativeElement.textContent).toContain('Automated Grocery List');
   });
 
+  it('should show meal history by week and save meals marked as eaten', async () => {
+    const meal = {
+      day: 'Monday',
+      category: 'breakfast',
+      name: 'Oatmeal',
+      minutes: 10,
+      cost: 30,
+      ingredients: 'Oats:30',
+    };
+    const plan = {
+      id: 21,
+      user_id: 8,
+      week_start: '2026-11-21',
+      title: 'Weekly Meal Plan',
+      plan_data: { meals: [meal] },
+      created_at: '2026-11-21T00:00:00',
+    };
+    const nextWeekPlan = {
+      id: 22,
+      user_id: 8,
+      week_start: '2026-11-28',
+      title: 'Next Weekly Meal Plan',
+      plan_data: { meals: [{ ...meal, name: 'Banana', day: 'Tuesday' }] },
+      created_at: '2026-11-28T00:00:00',
+    };
+    let savedPlanData: Record<string, unknown> | null = null;
+    await TestBed.configureTestingModule({
+      imports: [DashboardPage],
+      providers: [
+        {
+          provide: AuthService,
+          useValue: {
+            getCurrentUser: () =>
+              of({
+                id: 8,
+                full_name: 'Alex Santos',
+                dorm_name: 'San Leonardo Dorm',
+                email: 'alex@example.com',
+              }),
+            getProfile: () =>
+              of({
+                weekly_allowance: '1000.00',
+                emergency_fund_percent: '10.00',
+                food_budget: '900.00',
+                daily_meal_budget_cap: '128.57',
+                equipment: [],
+              }),
+          },
+        },
+        {
+          provide: NutriDormDataService,
+          useValue: {
+            listExpenses: () => of([]),
+            listPantryItems: () => of([]),
+            listMealPlans: () => of([nextWeekPlan, plan]),
+            listGroceryItems: () => of([]),
+            listNutritionLogs: () => of([]),
+            updateMealPlan: (
+              _id: number,
+              payload: { title: string; week_start: string; plan_data: Record<string, unknown> },
+            ) => {
+              savedPlanData = payload.plan_data;
+              return of({ ...nextWeekPlan, ...payload });
+            },
+          },
+        },
+        { provide: Router, useValue: { navigateByUrl: () => Promise.resolve(true) } },
+      ],
+    }).compileComponents();
+
+    const fixture = TestBed.createComponent(DashboardPage);
+    fixture.detectChanges();
+
+    const historyButtons = fixture.nativeElement.querySelectorAll(
+      '.history-week > button',
+    ) as NodeListOf<HTMLButtonElement>;
+    expect(historyButtons).toHaveLength(2);
+    expect(historyButtons[0]?.textContent).toContain('Nov 28 - Dec 4, 2026');
+    expect(historyButtons[1]?.textContent).toContain('Nov 21 - Nov 27, 2026');
+    historyButtons[1]?.click();
+    fixture.detectChanges();
+    expect(fixture.nativeElement.textContent).toContain('No meals marked as eaten this week.');
+
+    fixture.componentInstance.selectSection('meal-plans');
+    fixture.detectChanges();
+    const eatenCheckbox = fixture.nativeElement.querySelector('.day-card .eaten-check input') as HTMLInputElement;
+    eatenCheckbox.checked = true;
+    eatenCheckbox.dispatchEvent(new Event('change', { bubbles: true }));
+    fixture.detectChanges();
+    expect(savedPlanData).toEqual({
+      meals: [{ ...meal, name: 'Banana', day: 'Tuesday', isEaten: true }],
+    });
+
+    fixture.componentInstance.selectSection('overview');
+    fixture.detectChanges();
+    (fixture.nativeElement.querySelector('.history-week > button') as HTMLButtonElement).click();
+    fixture.detectChanges();
+    expect(fixture.nativeElement.textContent).toContain('1 eaten');
+    expect(fixture.nativeElement.textContent).toContain('Banana');
+  });
+
   it('should return to registration when the access token has expired', async () => {
     sessionStorage.setItem('nutridorm_access_token', 'expired');
     const navigationUrls: string[] = [];
