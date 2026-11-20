@@ -1,21 +1,162 @@
-<ion-header [translucent]="true">
-  <ion-toolbar>
-    <ion-title> Blank </ion-title>
-  </ion-toolbar>
-</ion-header>
-
 <ion-content [fullscreen]="true">
-  <ion-header collapse="condense">
-    <ion-toolbar>
-      <ion-title size="large">Blank</ion-title>
-    </ion-toolbar>
-  </ion-header>
+  <main class="auth-shell">
+    <header class="brand-header">
+      <div class="brand-mark" aria-hidden="true">
+        <ion-icon name="restaurant-outline"></ion-icon>
+      </div>
+      <div class="brand-copy">
+        <div class="brand-name">NutriDorm <span>DORMER EDITION</span></div>
+        <p>Budget Meal &amp; Grocery Assistant</p>
+      </div>
+    </header>
 
-  <div id="container">
-    <strong>Ready to create an app?</strong>
-    <p>
-      Start with Ionic
-      <a target="_blank" rel="noopener noreferrer" href="https://ionicframework.com/docs/components">UI Components</a>
+    <section class="auth-card" aria-labelledby="form-title">
+      <div class="eyebrow"><span></span> START YOUR DORMER JOURNEY</div>
+      <h1 id="form-title">{{ isSignInMode() ? 'Welcome back' : 'Create your account' }}</h1>
+      <p class="intro">
+        {{ isSignInMode() ? 'Sign in to continue to your dorm dashboard.' : 'A smarter, healthier week starts here.' }}
+      </p>
+
+      @if (!isSignInMode()) {
+      <div class="progress-label">
+        <span>ACCOUNT DETAILS</span>
+        <span>STEP 1 OF 2</span>
+      </div>
+      <div class="progress-track" aria-hidden="true"><span></span></div>
+      }
+
+      <form [formGroup]="isSignInMode() ? loginForm : registerForm" (ngSubmit)="createAccount()" novalidate>
+        @if (!isSignInMode()) {
+        <label class="field-label" for="full-name">Full name</label>
+        <div class="input-wrap" [class.invalid]="showError('fullName')">
+          <ion-icon name="person-outline" aria-hidden="true"></ion-icon>
+          <input
+            id="full-name"
+            type="text"
+            formControlName="fullName"
+            placeholder="e.g. Alex Santos"
+            autocomplete="name"
+            aria-describedby="full-name-error"
+          />
+        </div>
+        @if (showError('fullName')) {
+        <p class="field-error" id="full-name-error">Please enter your full name.</p>
+        }
+
+        <label class="field-label" for="dorm-name">Dormitory name or location</label>
+        <div class="input-wrap" [class.invalid]="showError('dormName')">
+          <ion-icon name="business-outline" aria-hidden="true"></ion-icon>
+          <input
+            id="dorm-name"
+            type="text"
+            formControlName="dormName"
+            placeholder="e.g. San Leonardo Dorm"
+            autocomplete="address-line1"
+            aria-describedby="dorm-name-error"
+          />
+        </div>
+        @if (showError('dormName')) {
+        <p class="field-error" id="dorm-name-error">Please enter your dormitory name or location.</p>
+        } }
+
+        <label class="field-label" for="email">Email address</label>
+        <div class="input-wrap" [class.invalid]="showError('email')">
+          <ion-icon name="mail-outline" aria-hidden="true"></ion-icon>
+          <input
+            id="email"
+            type="email"
+            formControlName="email"
+            placeholder="you@example.com"
+            autocomplete="email"
+            inputmode="email"
+            aria-describedby="email-error"
+          />
+        </div>
+        @if (showError('email')) {
+        <p class="field-error" id="email-error">Enter a valid email address.</p>
+        }
+
+        <label class="field-label" for="password">Password</label>
+        <div class="input-wrap" [class.invalid]="showError('password')">
+          <ion-icon name="lock-closed-outline" aria-hidden="true"></ion-icon>
+          <input
+            id="password"
+            [type]="passwordVisible ? 'text' : 'password'"
+            formControlName="password"
+            placeholder="At least 8 characters"
+            [attr.autocomplete]="isSignInMode() ? 'current-password' : 'new-password'"
+            aria-describedby="password-hint password-error"
+          />
+          <button
+            class="visibility-button"
+            type="button"
+            (click)="passwordVisible = !passwordVisible"
+            [attr.aria-label]="passwordVisible ? 'Hide password' : 'Show password'"
+          >
+            <ion-icon [name]="passwordVisible ? 'eye-off-outline' : 'eye-outline'"></ion-icon>
+          </button>
+        </div>
+        @if (!isSignInMode()) {
+        <p class="field-hint" id="password-hint">Use at least 8 characters for a stronger password.</p>
+        } @if (showError('password')) {
+        <p class="field-error" id="password-error">
+          {{ isSignInMode() ? 'Enter your password.' : 'Your password must be at least 8 characters.' }}
+        </p>
+        } @if (!isSignInMode()) {
+        <label class="field-label" for="confirm-password">Confirm password</label>
+        <div class="input-wrap" [class.invalid]="showError('confirmPassword') || passwordMismatch">
+          <ion-icon name="lock-closed-outline" aria-hidden="true"></ion-icon>
+          <input
+            id="confirm-password"
+            [type]="confirmPasswordVisible ? 'text' : 'password'"
+            formControlName="confirmPassword"
+            placeholder="Enter your password again"
+            autocomplete="new-password"
+            aria-describedby="confirm-password-error"
+          />
+          <button
+            class="visibility-button"
+            type="button"
+            (click)="confirmPasswordVisible = !confirmPasswordVisible"
+            [attr.aria-label]="confirmPasswordVisible ? 'Hide password' : 'Show password'"
+          >
+            <ion-icon [name]="confirmPasswordVisible ? 'eye-off-outline' : 'eye-outline'"></ion-icon>
+          </button>
+        </div>
+        @if (showError('confirmPassword') || passwordMismatch) {
+        <p class="field-error" id="confirm-password-error">
+          @if (registerForm.controls.confirmPassword.hasError('required')) { Please confirm your password. } @else {
+          Your passwords do not match. }
+        </p>
+        } } @if (formMessage()) {
+        <div
+          class="form-message"
+          [class.error-message]="formMessageType() === 'error'"
+          [attr.role]="formMessageType() === 'error' ? 'alert' : 'status'"
+        >
+          {{ formMessage() }}
+        </div>
+        }
+
+        <button class="submit-button" type="submit" [disabled]="isSubmitting()" [attr.aria-busy]="isSubmitting()">
+          @if (isSubmitting()) { {{ isSignInMode() ? 'Signing in...' : 'Creating account...' }} } @else { {{
+          isSignInMode() ? 'Sign In' : 'Create Dorm Account' }}
+          <ion-icon name="arrow-forward-outline" aria-hidden="true"></ion-icon>
+          }
+        </button>
+      </form>
+
+      @if (!isSignInMode()) {
+      <div class="secure-note">
+        <ion-icon name="shield-checkmark-outline" aria-hidden="true"></ion-icon>
+        Your dorm profile stays yours.
+      </div>
+      }
+    </section>
+
+    <p class="sign-in-prompt">
+      {{ isSignInMode() ? 'New to NutriDorm?' : 'Already have an account?' }}
+      <button type="button" (click)="showSignInNotice()">{{ isSignInMode() ? 'Create an account' : 'Sign in' }}</button>
     </p>
-  </div>
+  </main>
 </ion-content>
