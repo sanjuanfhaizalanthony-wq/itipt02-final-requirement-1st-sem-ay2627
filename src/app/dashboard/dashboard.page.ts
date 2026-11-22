@@ -45,6 +45,14 @@ interface PlannedMeal {
   cost: number;
   ingredients: string;
   isCompleted?: boolean;
+  completedOn?: string;
+}
+
+interface MealHistoryWeek {
+  id: string;
+  startDate: string;
+  endDate: string;
+  meals: PlannedMeal[];
 }
 
 const WEEKDAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
@@ -82,6 +90,13 @@ function dashboardSectionFromPath(path: string | null): DashboardSection | null 
   }
 }
 
+function localDateString(date = new Date()): string {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
 @Component({
   selector: 'app-dashboard',
   templateUrl: './dashboard.page.html',
@@ -112,7 +127,7 @@ export class DashboardPage implements OnInit {
   readonly isPantryFormOpen = signal(false);
   readonly isGroceryFormOpen = signal(false);
   readonly selectedMealPlanId = signal<number | null>(null);
-  readonly selectedHistoryPlanId = signal<number | null>(null);
+  readonly selectedHistoryWeekId = signal<string | null>(null);
   readonly editingMealIndex = signal<number | null>(null);
   readonly editingExpenseId = signal<number | null>(null);
   readonly editingPantryId = signal<number | null>(null);
@@ -143,10 +158,7 @@ export class DashboardPage implements OnInit {
   });
   readonly mealPlanForm = new FormGroup({
     title: new FormControl('Weekly Meal Plan', { nonNullable: true, validators: [Validators.required] }),
-    weekStart: new FormControl(new Date().toISOString().slice(0, 10), {
-      nonNullable: true,
-      validators: [Validators.required],
-    }),
+    weekStart: new FormControl(localDateString(), { nonNullable: true, validators: [Validators.required] }),
   });
   readonly mealForm = new FormGroup({
     day: new FormControl('Monday', { nonNullable: true, validators: [Validators.required] }),
@@ -291,16 +303,74 @@ export class DashboardPage implements OnInit {
     return plans.find((plan) => plan.id === this.selectedMealPlanId()) ?? plans[0] ?? null;
   }
 
-  mealHistoryPlans(): MealPlan[] {
-    return [...this.mealPlans()].sort((first, second) => second.week_start.localeCompare(first.week_start));
+  mealHistoryWeeks(): MealHistoryWeek[] {
+    const historyWeeks: MealHistoryWeek[] = [];
+    const completedByWeek = new Map<string, PlannedMeal[]>();
+
+    for (const plan of this.mealPlans()) {
+      const meals = plan.plan_data['meals'];
+      const completedMeals = Array.isArray(meals)
+        ? meals.filter((meal): meal is PlannedMeal => this.isPlannedMeal(meal) && meal.isCompleted === true)
+        : [];
+      const legacyMeals = completedMeals.filter((meal) => !this.parseLocalDate(meal.completedOn));
+
+      historyWeeks.push({
+        id: `plan-${plan.id}`,
+        startDate: plan.week_start,
+        endDate: this.addDaysToDate(plan.week_start, 6),
+        meals: legacyMeals,
+      });
+
+      for (const meal of completedMeals) {
+        const completedDate = this.parseLocalDate(meal.completedOn);
+        if (!completedDate) continue;
+
+        const weekStart = new Date(completedDate);
+        weekStart.setDate(weekStart.getDate() - weekStart.getDay());
+        const startDate = localDateString(weekStart);
+        const weekMeals = completedByWeek.get(startDate) ?? [];
+        weekMeals.push(meal);
+        completedByWeek.set(startDate, weekMeals);
+      }
+    }
+
+    for (const [startDate, meals] of completedByWeek) {
+      historyWeeks.push({
+        id: `week-${startDate}`,
+        startDate,
+        endDate: this.addDaysToDate(startDate, 7),
+        meals,
+      });
+    }
+
+    const activeWeekStart = new Date();
+    activeWeekStart.setHours(0, 0, 0, 0);
+    activeWeekStart.setDate(activeWeekStart.getDate() - activeWeekStart.getDay());
+    const activeStartDate = localDateString(activeWeekStart);
+    if (!completedByWeek.has(activeStartDate)) {
+      historyWeeks.push({
+        id: `week-${activeStartDate}`,
+        startDate: activeStartDate,
+        endDate: this.addDaysToDate(activeStartDate, 7),
+        meals: [],
+      });
+    }
+
+    return historyWeeks.sort((first, second) => second.startDate.localeCompare(first.startDate));
   }
 
-  mealHistoryWeek(plan: MealPlan): string {
-    const start = new Date(`${plan.week_start}T00:00:00`);
-    const end = new Date(start);
-    end.setDate(end.getDate() + 6);
+  mealHistoryWeek(week: MealHistoryWeek): string {
+    const start = this.parseLocalDate(week.startDate);
+    const end = this.parseLocalDate(week.endDate);
+    if (!start || !end) return `${week.startDate} - ${week.endDate}`;
     const dateLabel = (date: Date): string => date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
     return `${dateLabel(start)} - ${dateLabel(end)}, ${end.getFullYear()}`;
+  }
+
+  mealHistoryDate(meal: PlannedMeal): string {
+    const date = this.parseLocalDate(meal.completedOn);
+    if (!date) return meal.day;
+    return date.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric', year: 'numeric' });
   }
 
   eatenMeals(plan: MealPlan): PlannedMeal[] {
@@ -312,8 +382,8 @@ export class DashboardPage implements OnInit {
       : [];
   }
 
-  toggleMealHistory(planId: number): void {
-    this.selectedHistoryPlanId.update((selectedId) => (selectedId === planId ? null : planId));
+  toggleMealHistory(weekId: string): void {
+    this.selectedHistoryWeekId.update((selectedId) => (selectedId === weekId ? null : weekId));
   }
 
   plannedMealCost(): number {
@@ -338,7 +408,9 @@ export class DashboardPage implements OnInit {
     if (index < 0 || meal.isCompleted === target.checked) return;
 
     const meals = this.plannedMeals().map((item, mealIndex) =>
-      mealIndex === index ? { ...item, isCompleted: target.checked } : item,
+      mealIndex === index
+        ? { ...item, isCompleted: target.checked, completedOn: target.checked ? localDateString() : undefined }
+        : item,
     );
     this.isSavingMealCompletion.set(true);
     this.dataService
@@ -397,7 +469,12 @@ export class DashboardPage implements OnInit {
     const meals = [...this.plannedMeals()];
     const editIndex = this.editingMealIndex();
     if (editIndex === null) meals.push(entry);
-    else meals[editIndex] = { ...entry, isCompleted: meals[editIndex]?.isCompleted };
+    else
+      meals[editIndex] = {
+        ...entry,
+        isCompleted: meals[editIndex]?.isCompleted,
+        completedOn: meals[editIndex]?.completedOn,
+      };
     this.persistMealEntries(plan, meals);
   }
 
@@ -780,8 +857,22 @@ export class DashboardPage implements OnInit {
       typeof meal.minutes === 'number' &&
       typeof meal.cost === 'number' &&
       typeof meal.ingredients === 'string' &&
-      (meal.isCompleted === undefined || typeof meal.isCompleted === 'boolean')
+      (meal.isCompleted === undefined || typeof meal.isCompleted === 'boolean') &&
+      (meal.completedOn === undefined || typeof meal.completedOn === 'string')
     );
+  }
+
+  private parseLocalDate(value: string | undefined): Date | null {
+    if (!value) return null;
+    const date = new Date(`${value}T00:00:00`);
+    return Number.isNaN(date.getTime()) || localDateString(date) !== value ? null : date;
+  }
+
+  private addDaysToDate(value: string, days: number): string {
+    const date = this.parseLocalDate(value);
+    if (!date) return value;
+    date.setDate(date.getDate() + days);
+    return localDateString(date);
   }
 
   private handleSaveError(error: HttpErrorResponse): void {

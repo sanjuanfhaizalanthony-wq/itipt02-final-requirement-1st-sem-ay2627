@@ -179,19 +179,19 @@
         <div class="card-heading">
           <h2><ion-icon name="calendar-outline"></ion-icon> Meal History</h2>
         </div>
-        @for (plan of mealHistoryPlans(); track plan.id) {
+        @for (week of mealHistoryWeeks(); track week.id) {
         <div class="history-week">
           <button
             type="button"
-            [attr.aria-expanded]="selectedHistoryPlanId() === plan.id"
-            (click)="toggleMealHistory(plan.id)"
+            [attr.aria-expanded]="selectedHistoryWeekId() === week.id"
+            (click)="toggleMealHistory(week.id)"
           >
-            <strong>{{ mealHistoryWeek(plan) }}</strong>
-            <span>{{ eatenMeals(plan).length }} eaten</span>
+            <strong>{{ mealHistoryWeek(week) }}</strong>
+            <span>{{ week.meals.length }} eaten</span>
           </button>
-          @if (selectedHistoryPlanId() === plan.id) { @for (meal of eatenMeals(plan); track $index) {
+          @if (selectedHistoryWeekId() === week.id) { @for (meal of week.meals; track $index) {
           <div class="history-meal">
-            <span>{{ meal.day }} · {{ meal.category }}</span><strong>{{ meal.name }}</strong>
+            <span>{{ mealHistoryDate(meal) }} · {{ meal.category }}</span><strong>{{ meal.name }}</strong>
           </div>
           } @empty {
           <p class="empty-state">No meals marked as eaten this week.</p>

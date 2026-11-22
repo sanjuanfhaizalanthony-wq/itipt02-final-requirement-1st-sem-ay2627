@@ -1,7 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { ActivatedRoute, convertToParamMap, Router } from '@angular/router';
 import { of, throwError } from 'rxjs';
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { AuthService } from '../core/auth.service';
 import { NutriDormDataService } from '../core/nutri-dorm-data.service';
@@ -10,6 +10,7 @@ import { DashboardPage } from './dashboard.page';
 
 describe('DashboardPage', () => {
   afterEach(() => {
+    vi.useRealTimers();
     sessionStorage.removeItem('nutridorm_access_token');
   });
 
@@ -146,7 +147,7 @@ describe('DashboardPage', () => {
     const plan = {
       id: 21,
       user_id: 8,
-      week_start: '2026-11-21',
+      week_start: '2026-11-14',
       title: 'Weekly Meal Plan',
       plan_data: { meals: [meal] },
       created_at: '2026-11-21T00:00:00',
@@ -154,12 +155,14 @@ describe('DashboardPage', () => {
     const nextWeekPlan = {
       id: 22,
       user_id: 8,
-      week_start: '2026-11-28',
+      week_start: '2026-11-21',
       title: 'Next Weekly Meal Plan',
       plan_data: { meals: [{ ...meal, name: 'Banana', day: 'Tuesday' }] },
       created_at: '2026-11-28T00:00:00',
     };
     let savedPlanData: Record<string, unknown> | null = null;
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date(2026, 10, 22, 12));
     await TestBed.configureTestingModule({
       imports: [DashboardPage],
       providers: [
@@ -211,10 +214,11 @@ describe('DashboardPage', () => {
     const historyButtons = fixture.nativeElement.querySelectorAll(
       '.history-week > button',
     ) as NodeListOf<HTMLButtonElement>;
-    expect(historyButtons).toHaveLength(2);
-    expect(historyButtons[0]?.textContent).toContain('Nov 28 - Dec 4, 2026');
+    expect(historyButtons).toHaveLength(3);
+    expect(historyButtons[0]?.textContent).toContain('Nov 22 - Nov 29, 2026');
     expect(historyButtons[1]?.textContent).toContain('Nov 21 - Nov 27, 2026');
-    historyButtons[1]?.click();
+    expect(historyButtons[2]?.textContent).toContain('Nov 14 - Nov 20, 2026');
+    historyButtons[2]?.click();
     fixture.detectChanges();
     expect(fixture.nativeElement.textContent).toContain('No meals marked as eaten this week.');
 
@@ -226,7 +230,7 @@ describe('DashboardPage', () => {
     eatenCheckbox.dispatchEvent(new Event('change', { bubbles: true }));
     fixture.detectChanges();
     expect(savedPlanData).toEqual({
-      meals: [{ ...meal, name: 'Banana', day: 'Tuesday', isCompleted: true }],
+      meals: [{ ...meal, name: 'Banana', day: 'Tuesday', isCompleted: true, completedOn: '2026-11-22' }],
     });
 
     fixture.componentInstance.selectSection('overview');
@@ -235,6 +239,7 @@ describe('DashboardPage', () => {
     fixture.detectChanges();
     expect(fixture.nativeElement.textContent).toContain('1 eaten');
     expect(fixture.nativeElement.textContent).toContain('Banana');
+    expect(fixture.nativeElement.textContent).toContain('Sunday, Nov 22, 2026 · breakfast');
   });
 
   it('should return to registration when the access token has expired', async () => {
