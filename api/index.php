@@ -247,9 +247,7 @@ function profile_response(PDO $db, int $userId): array
     }
     $allowance = $profile['weekly_allowance'];
     $emergency = (string) $profile['emergency_fund_percent'];
-    $foodBudget = $allowance === null
-        ? null
-        : number_format((float) $allowance * (100 - (float) $emergency) / 100, 2, '.', '');
+    $foodBudget = $allowance === null ? null : number_format((float) $allowance, 2, '.', '');
     return [
         'weekly_allowance' => $allowance,
         'emergency_fund_percent' => $emergency,
@@ -508,19 +506,15 @@ try {
             $body = json_body();
             $allowance = $body['weekly_allowance'] ?? null;
             $allowanceValue = $allowance === null ? null : decimal_value($allowance, 'weekly_allowance', 10, 2, false);
-            $emergency = decimal_value($body['emergency_fund_percent'] ?? '10', 'emergency_fund_percent', 5, 2, true);
-            if ((float) $emergency > 100) {
-                fail_request(422, 'emergency_fund_percent must be between 0 and 100.');
-            }
             $equipment = $body['equipment'] ?? [];
             if (!is_array($equipment) || count($equipment) > 20 || array_filter($equipment, 'is_string') !== $equipment) {
                 fail_request(422, 'equipment must be a list of at most 20 strings.');
             }
             $query = $db->prepare(
-                'INSERT INTO user_profiles (user_id, weekly_allowance, emergency_fund_percent, equipment) VALUES (?, ?, ?, ?) '
-                . 'ON DUPLICATE KEY UPDATE weekly_allowance = VALUES(weekly_allowance), emergency_fund_percent = VALUES(emergency_fund_percent), equipment = VALUES(equipment)'
+                'INSERT INTO user_profiles (user_id, weekly_allowance, equipment) VALUES (?, ?, ?) '
+                . 'ON DUPLICATE KEY UPDATE weekly_allowance = VALUES(weekly_allowance), equipment = VALUES(equipment)'
             );
-            $query->execute([$userId, $allowanceValue, $emergency, json_encode(array_values($equipment), JSON_THROW_ON_ERROR)]);
+            $query->execute([$userId, $allowanceValue, json_encode(array_values($equipment), JSON_THROW_ON_ERROR)]);
             respond(profile_response($db, $userId));
         }
 
