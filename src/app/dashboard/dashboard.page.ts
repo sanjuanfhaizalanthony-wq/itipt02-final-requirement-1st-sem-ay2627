@@ -382,9 +382,6 @@ export class DashboardPage implements OnInit {
     return `${remaining} day${remaining === 1 ? '' : 's'} left`;
   }
 
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
   createBudgetPlan(): void {
     if (this.plannedMeals().length) {
       this.errorMessage.set('This plan already contains meals. Create a new weekly plan before auto-filling it.');
@@ -435,10 +432,6 @@ export class DashboardPage implements OnInit {
       error: (error: HttpErrorResponse) => this.handleSaveError(error),
     });
   }
-
-=======
->>>>>>> 26c03ee (Add Cedrick contribution)
->>>>>>> a34e4ae (Update Cedrick dashboard changes)
   saveMealEntry(): void {
     const plan = this.currentMealPlan();
     if (!plan) {
